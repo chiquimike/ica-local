@@ -1,0 +1,168 @@
+    <!DOCTYPE html>
+    <html lang="es">
+    <head>
+        <meta charset="UTF-8">
+        <title>Panel de Administración - ICA</title>
+        <style>
+            body { font-family: Arial, sans-serif; background-color: #e9ecef; padding: 20px; }
+            h1 { color: #0056b3; text-align: center; }
+            .controles { background: white; padding: 15px; border-radius: 8px; margin-bottom: 20px; display: flex; justify-content: space-between; align-items: center; box-shadow: 0 0 10px rgba(0,0,0,0.1); display: none; }
+            select { padding: 8px; font-size: 16px; border-radius: 4px; }
+            table { width: 100%; border-collapse: collapse; background: white; box-shadow: 0 0 10px rgba(0,0,0,0.1); }
+            th, td { padding: 12px; border: 1px solid #ddd; text-align: left; }
+            th { background-color: #0056b3; color: white; }
+            tr:nth-child(even) { background-color: #f8f9fa; }
+            .btn-editar { background-color: #ffc107; color: black; border: none; padding: 5px 10px; cursor: pointer; border-radius: 3px; }
+            .btn-editar:hover { background-color: #e0a800; }
+            .btn-borrar { background-color: #dc3545; color: white; border: none; padding: 5px 10px; cursor: pointer; border-radius: 3px; }
+            .btn-borrar:hover { background-color: #c82333; }
+            .btn-excel { background-color: #28a745; color: white; border: none; padding: 10px 15px; font-size: 16px; cursor: pointer; border-radius: 4px; font-weight: bold; }
+            .btn-excel:hover { background-color: #218838; }
+            .enlace-pdf { color: #0056b3; text-decoration: none; font-weight: bold; }
+            .enlace-pdf:hover { text-decoration: underline; }
+        </style>
+    </head>
+    <body>
+        <h1>Panel de Administración (Bases de Datos)</h1>
+        
+        <div id="controles" class="controles">
+            <div>
+                <label for="filtro-semestre"><strong>Filtrar por Semestre: </strong></label>
+                <select id="filtro-semestre" onchange="renderizarTabla()">
+                    <option value="todos">Mostrar Todos</option>
+                </select>
+            </div>
+            <button class="btn-excel" onclick="descargarExcel()">📥 Descargar a Excel</button>
+        </div>
+
+        <table id="tabla-usuarios" style="display: none;">
+            <thead>
+                <tr>
+                    <th>No. Cuenta</th><th>Nombre</th><th>Teléfono</th><th>Correo</th><th>Carrera</th><th>Semestre</th>
+                    <th>Historial</th> 
+                    <th>Acciones</th> 
+                </tr>
+            </thead>
+            <tbody></tbody>
+        </table>
+
+        <script>
+            let datosGlobales = [];
+            
+            const apiUrl = 'http://192.168.49.2:30090/usuarios';
+
+            const pass = prompt("Acceso Restringido. Ingrese la clave del profesor:");
+            
+            if (pass !== "profe123") {
+                alert("Clave incorrecta.");
+                window.location.href = "/";
+            } else {
+                document.getElementById('tabla-usuarios').style.display = "table";
+                document.getElementById('controles').style.display = "flex"; 
+                cargarDatosApi();
+            }
+
+            function cargarDatosApi() {
+                fetch(apiUrl)
+                    .then(res => res.json())
+                    .then(data => {
+                        datosGlobales = data;
+                        poblarSelector(data);
+                        renderizarTabla();
+                    });
+            }
+
+            function poblarSelector(data) {
+                const selector = document.getElementById('filtro-semestre');
+                const actual = selector.value;
+                selector.innerHTML = '<option value="todos">Mostrar Todos</option>';
+                const semestresUnicos = [...new Set(data.map(u => u.semestre))];
+                semestresUnicos.forEach(sem => {
+                    selector.innerHTML += `<option value="${sem}">${sem}</option>`;
+                });
+                selector.value = actual; 
+            }
+
+            function renderizarTabla() {
+                const filtro = document.getElementById('filtro-semestre').value;
+                const tbody = document.querySelector('#tabla-usuarios tbody');
+                tbody.innerHTML = ''; 
+
+                const datosFiltrados = (filtro === "todos") ? datosGlobales : datosGlobales.filter(u => u.semestre === filtro);
+
+                datosFiltrados.forEach(u => {
+                    tbody.innerHTML += `<tr>
+                        <td>${u.numero_cuenta}</td>
+                        <td>${u.nombre}</td>
+                        <td>${u.telefono}</td>
+                        <td>${u.correo}</td>
+                        <td>${u.carrera}</td>
+                        <td><strong>${u.semestre}</strong></td>
+                        <td><a class="enlace-pdf" href="http://192.168.49.2:30090/pdfs/${u.numero_cuenta}_historial.pdf" target="_blank">📄 Abrir PDF</a></td>
+                        <td>
+                            <button class="btn-editar" onclick="editarUsuario(${u.id})">Editar</button>
+                            <button class="btn-borrar" onclick="borrarUsuario(${u.id})">Borrar</button>
+                        </td>
+                    </tr>`;
+                });
+            }
+            
+            function borrarUsuario(id) {
+                if(confirm("¿Estás seguro de que deseas eliminar este registro?")) {
+                    fetch(`${apiUrl}/${id}`, { method: 'DELETE' })
+                    .then(res => res.json())
+                    .then(data => { if(data.status === "Éxito") { cargarDatosApi(); } });
+                }
+            }
+
+            function editarUsuario(id) {
+                const u = datosGlobales.find(user => user.id === id);
+                
+                const datosActualizados = {
+                    numero_cuenta: prompt("Número de Cuenta:", u.numero_cuenta) || u.numero_cuenta,
+                    nombre: (prompt("Nombre Completo:", u.nombre) || u.nombre).toUpperCase(),
+                    telefono: prompt("Teléfono:", u.telefono) || u.telefono,
+                    correo: (prompt("Correo:", u.correo) || u.correo).toLowerCase(),
+                    carrera: (prompt("Carrera:", u.carrera) || u.carrera).toUpperCase(),
+                    semestre: prompt("Semestre:", u.semestre) || u.semestre
+                };
+
+                fetch(`${apiUrl}/${id}`, {
+                    method: 'PUT',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(datosActualizados)
+                })
+                .then(res => res.json())
+                .then(data => { if(data.status === "Éxito") { cargarDatosApi(); } });
+            }
+
+            function descargarExcel() {
+                const filtro = document.getElementById('filtro-semestre').value;
+                const datosAExportar = (filtro === "todos") ? datosGlobales : datosGlobales.filter(u => u.semestre === filtro);
+
+                if (datosAExportar.length === 0) {
+                    alert("No hay registros para descargar.");
+                    return;
+                }
+
+                let csvContent = "No. Cuenta,Nombre,Telefono,Correo,Carrera,Semestre\n";
+
+                datosAExportar.forEach(u => {
+                    csvContent += `"${u.numero_cuenta}","${u.nombre}","${u.telefono}","${u.correo}","${u.carrera}","${u.semestre}"\n`;
+                });
+
+                const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+                const url = URL.createObjectURL(blob);
+                const link = document.createElement("a");
+                
+                link.setAttribute("href", url);
+                link.setAttribute("download", `Alumnos_ICA_${filtro}.csv`);
+                link.style.visibility = 'hidden';
+                
+                document.body.appendChild(link);
+                link.click();
+                document.body.removeChild(link);
+            }
+        </script>
+    </body>
+    </html>

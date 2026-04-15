@@ -1,0 +1,119 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: backend-codigo
+data:
+  requirements.txt: |
+    fastapi
+    uvicorn
+    pymysql
+    pydantic
+    python-multipart
+  main.py: |
+    from fastapi import FastAPI, File, UploadFile, Form
+    from fastapi.middleware.cors import CORSMiddleware
+    from fastapi.staticfiles import StaticFiles
+    from pydantic import BaseModel
+    import pymysql
+    import os
+    import shutil
+
+    app = FastAPI(title="API Gestión de Usuarios - ICA")
+
+    app.add_middleware(
+        CORSMiddleware,
+        allow_origins=["*"],
+        allow_credentials=True,
+        allow_methods=["*"],
+        allow_headers=["*"],
+    )
+
+    DB_HOST = os.getenv("DB_HOST", "mysql-nodeport")
+    DB_USER = os.getenv("DB_USER", "root")
+    DB_PASS = os.getenv("DB_PASS", "1ca_01")
+    DB_NAME = os.getenv("DB_NAME", "gestion_usuarios")
+
+    # Asegurar que exista la carpeta y exponerla para descargar los PDFs
+    os.makedirs("/app/pdfs", exist_ok=True)
+    app.mount("/pdfs", StaticFiles(directory="/app/pdfs"), name="pdfs")
+
+    def get_db_connection():
+        return pymysql.connect(
+            host=DB_HOST, user=DB_USER, password=DB_PASS, database=DB_NAME,
+            cursorclass=pymysql.cursors.DictCursor
+        )
+
+    class UsuarioNuevo(BaseModel):
+        numero_cuenta: str
+        nombre: str
+        telefono: str
+        correo: str
+        carrera: str
+        semestre: str 
+
+    @app.get("/usuarios")
+    def obtener_usuarios():
+        try:
+            conn = get_db_connection()
+            with conn.cursor() as cursor:
+                cursor.execute("SELECT * FROM usuarios")
+                result = cursor.fetchall()
+            conn.close()
+            return result
+        except Exception as e:
+            return []
+
+    # NUEVO: Endpoint POST modificado para aceptar FormData y Archivos
+    @app.post("/usuarios")
+    def crear_usuario(
+        numero_cuenta: str = Form(...),
+        nombre: str = Form(...),
+        telefono: str = Form(...),
+        correo: str = Form(...),
+        carrera: str = Form(...),
+        semestre: str = Form(...),
+        historial_pdf: UploadFile = File(...)
+    ):
+        try:
+            # 1. Guardar el PDF físicamente en el PVC
+            file_path = f"/app/pdfs/{numero_cuenta}_historial.pdf"
+            with open(file_path, "wb") as buffer:
+                shutil.copyfileobj(historial_pdf.file, buffer)
+
+            # 2. Guardar los datos en MySQL
+            conn = get_db_connection()
+            with conn.cursor() as cursor:
+                sql = "INSERT INTO usuarios (numero_cuenta, nombre, telefono, correo, carrera, semestre) VALUES (%s, %s, %s, %s, %s, %s)"
+                val = (numero_cuenta, nombre, telefono, correo, carrera, semestre)
+                cursor.execute(sql, val)
+            conn.commit()
+            conn.close()
+            return {"status": "Éxito"}
+        except Exception as e:
+            return {"status": "Error", "detalle": str(e)}
+
+    @app.put("/usuarios/{usuario_id}")
+    def actualizar_usuario(usuario_id: int, usuario: UsuarioNuevo):
+        try:
+            conn = get_db_connection()
+            with conn.cursor() as cursor:
+                sql = "UPDATE usuarios SET numero_cuenta=%s, nombre=%s, telefono=%s, correo=%s, carrera=%s, semestre=%s WHERE id=%s"
+                val = (usuario.numero_cuenta, usuario.nombre, usuario.telefono, usuario.correo, usuario.carrera, usuario.semestre, usuario_id)
+                cursor.execute(sql, val)
+            conn.commit()
+            conn.close()
+            return {"status": "Éxito", "mensaje": "Usuario actualizado."}
+        except Exception as e:
+            return {"status": "Error", "detalle": str(e)}
+
+    @app.delete("/usuarios/{usuario_id}")
+    def eliminar_usuario(usuario_id: int):
+        try:
+            conn = get_db_connection()
+            with conn.cursor() as cursor:
+                cursor.execute("DELETE FROM usuarios WHERE id = %s", (usuario_id,))
+            conn.commit()
+            conn.close()
+            return {"status": "Éxito", "mensaje": "Usuario eliminado."}
+        except Exception as e:
+            return {"status": "Error"}

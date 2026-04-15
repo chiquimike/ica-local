@@ -1,0 +1,251 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ingeniería ICA | FES Aragón UNAM</title>
+    <link rel="icon" type="image/png" href="img/favicon.jpg">
+    <link rel="stylesheet" href="style.css">
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;700&display=swap" rel="stylesheet">
+</head>
+<body>
+
+<header class="main-header">
+    <div class="header-content-wrapper">
+        <div class="institucional-container">
+            <div class="logos-group">
+                <img src="img/logo_unam.png" alt="Logo UNAM" class="logo-unam">
+                <img src="img/logo_fes.png" alt="Logo FES Aragón" class="logo-fes">
+            </div>
+            <div class="brand-text-unam">
+                <span class="unam-text">UNAM</span>
+                <span class="fes-text">FES Aragón</span>
+            </div>
+        </div>
+
+        <div class="center-name-container">
+            <h1 class="center-full-name">
+                <span class="center-light">INNOVATION CENTER</span> 
+                <span class="center-bold">ARAGON</span>
+            </span>
+        </div>
+    </div>
+</header>
+
+    <nav class="navbar">
+        <ul class="nav-links">
+            <li><a href="#" id="btn-inicio" class="active" onclick="showSection('inicio')">Inicio</a></li>
+            <li><a href="#" id="btn-horarios" onclick="showSection('horarios')">Horarios</a></li>
+            <li><a href="#" id="btn-servicio" onclick="showSection('servicio')">Servicio Social</a></li>
+            <li><a href="#" id="btn-proyectos" onclick="showSection('proyectos')">Proyectos</a></li>
+            <li><a href="#" id="btn-cursos" onclick="showSection('cursos')">Cursos</a></li>
+        </ul>
+    </nav>
+
+    <main class="container">
+        <section id="inicio" class="content-section active full-centered-section">
+    <div class="hero-text-container">
+        <h1 class="section-title centered-text">Ingeniería en Computación</h1>
+        <p class="subtitle centered-text">Portal Académico Oficial de la Comunidad ICA</p>
+    </div>
+    
+    <div class="main-image-container">
+        <img src="img/entrada_cloud.jpeg" alt="Entrada de la Facultad FES Aragón UNAM" class="hero-image">
+    </div>
+
+    <div class="welcome-text-section">
+        <p>El ICA dentro de la FES Aragón se concibe como un espacio académico orientado al aprendizaje práctico, la innovación y el desarrollo de habilidades técnicas. Aquí, los estudiantes encuentran un entorno diseñado para complementar su formación teórica mediante el uso de herramientas tecnológicas, trabajo colaborativo y resolución de problemas reales.</p>
+        
+        <p>En este espacio es común encontrar laboratorios equipados con computadoras, software especializado y recursos que permiten llevar a cabo prácticas, proyectos y simulaciones. Además, el ICA funciona como un punto de encuentro donde alumnos y docentes interactúan de manera más dinámica, fomentando la participación activa, el intercambio de ideas y el aprendizaje continuo.</p>
+        
+        <p>Asimismo, el ICA promueve el desarrollo de competencias clave como el pensamiento lógico, la programación, el análisis de datos o la implementación de soluciones tecnológicas, dependiendo del enfoque de la carrera. También puede ser sede de asesorías, talleres o actividades complementarias que fortalecen la preparación académica y profesional de los estudiantes.</p>
+        
+        <p class="final-quote-with-animation">
+            <strong>En conjunto, el ICA representa un espacio donde la teoría cobra vida, impulsando a los estudiantes a experimentar, crear y prepararse para los retos del entorno profesional.</strong>
+            
+            <span class="animated-pulse-divider"></span>
+        </p>
+    </div>
+</section>
+
+<section id="horarios" class="content-section">
+    <h1 class="section-title centered-text">Horarios Semestrales</h1>
+    <p class="subtitle centered-text">Consulta los grupos disponibles.</p>
+    
+    <div class="grid-layout">
+        <div class="card card-unam">
+         <div class="card card-classroom">
+            <img src="img/aula_cloud.jpeg" alt="Interior del aula Cloud con equipos de red" class="classroom-image">
+        </div>
+            <div class="card-header-unam">CLOUD</div>
+            <div class="card-info">
+                <h3>Horario</h3>
+                <p>Salón CLOUD</p>
+
+                <a href="img/cloud.pdf" target="_blank" class="btn-unam" style="text-decoration: none; display: inline-block; text-align: center;">
+                    Ver Detalles
+                </a>
+            </div>
+        </div>
+        <div class="card card-unam">
+         <div class="card card-classroom">
+            <img src="img/otra_aula.jpeg" alt="Interior del aula Cloud con equipos de red" class="classroom-image">
+        </div>
+            <div class="card-header-unam">CAPACITACIÓN</div>
+            <div class="card-info">
+                <h3>Horario</h3>
+                <p>Aulas A-201 / A-202</p>
+                
+                <a href="img/capacitacion.pdf" target="_blank" class="btn-unam" style="text-decoration: none; display: inline-block; text-align: center;">
+                    Ver Detalles
+                </a>
+            </div>
+        </div>
+    </div>
+</section>
+        <section id="servicio" class="content-section">
+            <h1 class="section-title">Servicio Social</h1>
+            <p class="subtitle">Proceso de Registro</p>
+            <div class="formulario-container">
+            <h2>Registro de Alumnos</h2>
+            <form id="form-registro">
+                
+                <div class="campo-formulario">
+                    <label for="cuenta">Número de Cuenta (9 dígitos):</label>
+                    <input type="text" id="cuenta" placeholder="Ej. 325069567" required>
+                </div>
+
+                <div class="campo-formulario">
+                    <label for="nombre">Nombre Completo:</label>
+                    <input type="text" id="nombre" placeholder="Ej. Nuñez Zaragoza Ricardo Misael" required>
+                </div>
+
+                <div class="campo-formulario">
+                    <label for="telefono">Teléfono:</label>
+                    <input type="text" id="telefono" placeholder="Ej. 5537147024" required>
+                </div>
+
+                <div class="campo-formulario">
+                    <label for="correo">Correo Institucional:</label>
+                    <input type="email" id="correo" placeholder="Ej. alumno@aragon.unam.mx" required>
+                </div>
+
+                <div class="campo-formulario">
+                    <label for="carrera">Carrera:</label>
+                    <input type="text" id="carrera" placeholder="Ej. ICO, IME, ARQ" required>
+                </div>
+
+                <div class="campo-formulario">
+                    <label for="semestre">Semestre:</label>
+                    <select id="semestre" required>
+                        <option value="2026-II">Semestre 2026-II</option>
+                        <option value="2027-I">Semestre 2027-I</option>
+                        <option value="2027-II">Semestre 2027-II</option>
+                    </select>
+                </div>
+
+                <div class="campo-formulario">
+                    <label for="historial">Historial Académico (Solo PDF, Máx. 1MB):</label>
+                    <input type="file" id="historial" accept="application/pdf" required>
+                </div>
+
+                <button type="submit">Enviar Registro</button>
+            </form>
+        </div>
+            <div class="card-simple info-box-unam">
+                <p><br>Información clave para estudiantes de último año, como tú.</p>
+            </div>
+        </section>
+
+        <section id="proyectos" class="content-section">
+    <h1 class="section-title">Innovación ICA</h1>
+    <p class="subtitle">Galería de proyectos destacados.</p>
+    <div class="grid-layout">
+        <div class="card card-unam">
+            <div class="image-placeholder">
+                <img src="img/tienda_ica.jpeg" alt="Sistema Check-in Lab" class="course-image img-proyect-full">
+            </div>
+            <div class="card-info">
+                <h3>Tienda Oficial del ICA</h3>
+                <p>M E R C H A N D I S I N G</p>
+            </div>
+        </div>
+    </div>
+</section>
+
+        <section id="cursos" class="content-section">
+            <h1 class="section-title">Cursos y Talleres</h1>
+            <p class="subtitle">Capacitación continua FES Aragón.</p>
+            <div class="grid-layout">
+                <div class="card card-unam">
+                    <div class="card-info">
+                        <h3>Servidores</h3>
+                        <p style="text-align: justify;">Aprende a administrar hardware, configurar redes locales, instalar sistemas operativos para servidores (como Ubuntu Server) y gestiona recursos de hardware real para despliegues en producción.</p>
+                    </div>
+                    <img src="img/servidores.jpeg" alt="Visualización de Base de Datos MySQL" class="course-image">
+                </div>
+                <div class="card card-unam">
+                    <div class="card-info">
+                        <h3>Impresión y Diseño 3D</h3>
+                        <p style="text-align: justify;">Convierte tus ideas en objetos tangibles! Un espacio equipado para el modelado y el prototipado rápido, ideal para materializar proyectos de mecánica, robótica y diseño industrial. Trae tus ideas y las hacemos realidad, como tambien ayuda a crearlas.</p>
+                    </div>
+                    <img src="img/impresión_3d.jpeg" alt="Visualización de Base de Datos MySQL" class="course-image">
+                </div>
+                <div class="card card-unam">
+                    <div class="card-info">
+                        <h3>Reservación de Cubículos</h3>
+                        <p style="text-align: justify;">Espacios de trabajo colaborativo diseñados para ti. Ideales para sesiones de estudio grupal, desarrollo de tesis, reuniones de planificación de proyectos o para enfocarte al máximo en tus actividades.</p>
+                    </div>
+                    <img src="img/cubiculos.jpeg" alt="Visualización de Base de Datos MySQL" class="course-image">
+                </div>
+                <div class="card card-unam">
+                    <div class="card-info">
+                        <h3>Lab. CLOUD</h3>
+                        <p style="text-align: justify;">Absorbe conocimiento como nunca antes lo habias hecho. Laboratorio que cuenta con la tecnología más picuda, no apta para jochis.</p>
+                    </div>
+                    <img src="img/aula_cloud.jpeg" alt="Visualización de Base de Datos MySQL" class="course-image">
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <footer class="ica-footer">
+    <div class="footer-container">
+        <div class="footer-column description">
+            <h2 class="footer-title">Ingenierías ICA</h2>
+            <p>Un espacio dedicado a la innovación y el desarrollo tecnológico en la FES Aragón, impulsando el talento de la comunidad UNAM mediante proyectos reales y aprendizaje práctico.</p>
+        </div>
+        <div class="footer-column links">
+            <h3 class="footer-subtitle">Más información</h3>
+            <ul>
+                <li><a href="#" onclick="showSection('inicio')">INICIO</a></li>
+                <li><a href="#" onclick="showSection('horarios')">HORARIOS</a></li>
+                <li><a href="#" onclick="showSection('servicio')">SERVICIO SOCIAL</a></li>
+                <li><a href="#" onclick="showSection('proyectos')">PROYECTOS</a></li>
+                <li><a href="#" onclick="showSection('cursos')">CURSOS</a></li>
+            </ul>
+        </div>
+
+        <div class="footer-column socials">
+            <h3 class="footer-subtitle">Redes Sociales</h3>
+            <div class="social-icons-group">
+                <!-- Facebook -->
+                <a href="https://www.facebook.com/share/19CZS5Fzwp/" target="_blank" class="social-icon fb">
+                    <img src="https://cdn-icons-png.flaticon.com/512/124/124010.png" alt="Facebook">
+                </a>
+                <!-- Telegram -->
+                <a href="https://t.me/TU_CANAL" target="_blank" class="social-icon tg">
+                    <img src="https://cdn-icons-png.flaticon.com/512/2111/2111646.png" alt="Telegram">
+                </a>
+                <!-- WhatsApp -->
+                <a href="https://bit.ly/4eMuaQC" target="_blank" class="social-icon wa">
+                    <img src="https://cdn-icons-png.flaticon.com/512/733/733585.png" alt="WhatsApp">
+                </a>
+            </div>
+        </div>
+    </div>
+</footer>
+
+    <script src="script.js"></script>
+</body>
+</html>
