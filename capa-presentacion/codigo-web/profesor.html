@@ -1,168 +1,213 @@
-    <!DOCTYPE html>
-    <html lang="es">
-    <head>
-        <meta charset="UTF-8">
-        <title>Panel de Administración - ICA</title>
-        <style>
-            body { font-family: Arial, sans-serif; background-color: #e9ecef; padding: 20px; }
-            h1 { color: #0056b3; text-align: center; }
-            .controles { background: white; padding: 15px; border-radius: 8px; margin-bottom: 20px; display: flex; justify-content: space-between; align-items: center; box-shadow: 0 0 10px rgba(0,0,0,0.1); display: none; }
-            select { padding: 8px; font-size: 16px; border-radius: 4px; }
-            table { width: 100%; border-collapse: collapse; background: white; box-shadow: 0 0 10px rgba(0,0,0,0.1); }
-            th, td { padding: 12px; border: 1px solid #ddd; text-align: left; }
-            th { background-color: #0056b3; color: white; }
-            tr:nth-child(even) { background-color: #f8f9fa; }
-            .btn-editar { background-color: #ffc107; color: black; border: none; padding: 5px 10px; cursor: pointer; border-radius: 3px; }
-            .btn-editar:hover { background-color: #e0a800; }
-            .btn-borrar { background-color: #dc3545; color: white; border: none; padding: 5px 10px; cursor: pointer; border-radius: 3px; }
-            .btn-borrar:hover { background-color: #c82333; }
-            .btn-excel { background-color: #28a745; color: white; border: none; padding: 10px 15px; font-size: 16px; cursor: pointer; border-radius: 4px; font-weight: bold; }
-            .btn-excel:hover { background-color: #218838; }
-            .enlace-pdf { color: #0056b3; text-decoration: none; font-weight: bold; }
-            .enlace-pdf:hover { text-decoration: underline; }
-        </style>
-    </head>
-    <body>
-        <h1>Panel de Administración (Bases de Datos)</h1>
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Panel de Administración - ICA</title>
+    
+    <style>
+        body { font-family: 'Roboto', sans-serif; background-color: #e9ecef; padding: 20px; }
+        h1 { color: #002b7a; text-align: center; }
+        .controles { 
+            background: white; padding: 15px; border-radius: 8px; 
+            margin-bottom: 20px; display: none; justify-content: space-between; 
+            align-items: center; box-shadow: 0 0 10px rgba(0,0,0,0.1); 
+        }
+        select { padding: 8px; font-size: 16px; border-radius: 4px; }
+        table { width: 100%; border-collapse: collapse; background: white; display: none; }
+        th, td { padding: 12px; border: 1px solid #ddd; text-align: left; }
+        th { background-color: #002b7a; color: white; }
+        tr:nth-child(even) { background-color: #f8f9fa; }
+        .btn-excel { background-color: #28a745; color: white; border: none; padding: 10px; cursor: pointer; border-radius: 5px; font-weight: bold; }
+        .btn-editar { background-color: #ffc107; color: black; border: none; padding: 5px 10px; cursor: pointer; border-radius: 3px; font-weight: bold; }
+        .btn-editar:hover { background-color: #e0a800; }
+        .btn-eliminar { background-color: #dc3545; color: white; border: none; padding: 5px 10px; cursor: pointer; border-radius: 3px; margin-left: 5px; font-weight: bold; }
+        .btn-eliminar:hover { background-color: #c82333; }
+        #login-container { text-align: center; margin-top: 100px; }
+    </style>
+
+    <script>
+        const apiUrl = 'http://192.168.49.2.nip.io:30090/usuarios';
+        let datosGlobales = [];
+
+        function handleCredentialResponse(response) {
+            console.log("¡Acceso concedido por Google!");
+            sessionStorage.setItem('token_ica', response.credential);
+            mostrarPanelYDatos();
+        }
+
+        function mostrarPanelYDatos() {
+            const login = document.getElementById('login-container');
+            const panel = document.getElementById('contenido-profesor');
+            const controles = document.getElementById('controles');
+
+            if (login) login.style.display = 'none';
+            if (panel) panel.style.display = 'block';
+            if (controles) controles.style.display = 'flex';
+
+            cargarDatosApi();
+        }
+
+        function cargarDatosApi() {
+            console.log("Pidiendo datos a la API...");
+            fetch(apiUrl)
+                .then(res => {
+                    if (!res.ok) throw new Error("Error en la red");
+                    return res.json();
+                })
+                .then(data => {
+                    datosGlobales = data;
+                    if (typeof renderizarTabla === 'function') {
+                        renderizarTabla(data);
+                    }
+                })
+                .catch(err => console.error("Error en la API:", err));
+        }
+
+        window.onload = function() {
+            if (sessionStorage.getItem('token_ica')) {
+                mostrarPanelYDatos();
+            }
+        };
+    </script>
+
+    <script src="https://accounts.google.com/gsi/client" async defer></script>
+</head>
+
+<body>
+    <div id="login-container">
+        <h2 style="color: #002b7a;">Innovation Center Aragón</h2>
+        <p>Identifícate para gestionar el Servicio Social</p>
+        <div id="g_id_onload"
+             data-client_id="374163159167-hj3aofouk0mae2ksk0qq5agevdlengfj.apps.googleusercontent.com"
+             data-context="signin"
+             data-ux_mode="popup"
+             data-callback="handleCredentialResponse"
+             data-auto_prompt="false">
+        </div>
+        <div class="g_id_signin" data-type="standard" data-shape="rectangular" data-theme="outline" data-text="signin_with" data-size="large" data-logo_alignment="left">
+        </div>
+    </div>
+
+    <div id="contenido-profesor" style="display: none;">
+        <h1>Panel de Administración</h1>
         
         <div id="controles" class="controles">
             <div>
-                <label for="filtro-semestre"><strong>Filtrar por Semestre: </strong></label>
-                <select id="filtro-semestre" onchange="renderizarTabla()">
-                    <option value="todos">Mostrar Todos</option>
+                <label><strong>Filtrar por Semestre: </strong></label>
+                <select id="filtro-semestre" onchange="filtrarPorSemestre()">
+                    <option value="Todos">Mostrar Todos</option>
+                    <option value="2026-II">2026-1</option>
+                    <option value="2026-I">2025-2</option>
+                    <option value="2025-II">2026-1</option>
+                    <option value="2025-I">2025-2</option>
                 </select>
             </div>
-            <button class="btn-excel" onclick="descargarExcel()">📥 Descargar a Excel</button>
+            <button class="btn-excel" onclick="descargarExcel()">📥 Descargar Excel</button>
         </div>
 
-        <table id="tabla-usuarios" style="display: none;">
+        <table id="tabla-usuarios">
             <thead>
                 <tr>
-                    <th>No. Cuenta</th><th>Nombre</th><th>Teléfono</th><th>Correo</th><th>Carrera</th><th>Semestre</th>
-                    <th>Historial</th> 
-                    <th>Acciones</th> 
-                </tr>
+                    <th>No. Cuenta</th>
+                    <th>Nombre</th>
+                    <th>Teléfono</th>
+                    <th>Correo</th>
+                    <th>Carrera</th>
+                    <th>Semestre</th>
+                    <th>Historial</th>
+                    <th>Acciones</th> </tr>
             </thead>
             <tbody></tbody>
         </table>
+    </div>
 
-        <script>
-            let datosGlobales = [];
-            
-            const apiUrl = 'http://192.168.49.2:30090/usuarios';
+    <script>
+        function renderizarTabla(usuarios) {
+            const tbody = document.querySelector('#tabla-usuarios tbody');
+            const tabla = document.getElementById('tabla-usuarios');
+            if (!tbody) return;
 
-            const pass = prompt("Acceso Restringido. Ingrese la clave del profesor:");
-            
-            if (pass !== "profe123") {
-                alert("Clave incorrecta.");
-                window.location.href = "/";
+            tbody.innerHTML = '';
+            usuarios.forEach(u => {
+                const tr = document.createElement('tr');
+                tr.innerHTML = `
+                    <td>${u.numero_cuenta}</td>
+                    <td>${u.nombre}</td>
+                    <td>${u.telefono}</td>
+                    <td>${u.correo}</td>
+                    <td>${u.carrera}</td>
+                    <td>${u.semestre}</td>
+                    <td><a href="http://192.168.49.2.nip.io:30090/ver-pdf/${u.numero_cuenta}" target="_blank">📄 Ver PDF</a></td>
+                    <td>
+                        <button class="btn-editar" onclick="editarUsuario('${u.numero_cuenta}')">✏️</button>
+                        <button class="btn-eliminar" onclick="eliminarUsuario('${u.numero_cuenta}')">🗑️</button>
+                    </td>
+                `;
+                tbody.appendChild(tr);
+            });
+            tabla.style.display = 'table';
+        }
+
+        function filtrarPorSemestre() {
+            const filtro = document.getElementById('filtro-semestre').value;
+            if (filtro === 'todos') {
+                renderizarTabla(datosGlobales);
             } else {
-                document.getElementById('tabla-usuarios').style.display = "table";
-                document.getElementById('controles').style.display = "flex"; 
-                cargarDatosApi();
+                const filtrados = datosGlobales.filter(u => u.semestre === filtro);
+                renderizarTabla(filtrados);
             }
+        }
 
-            function cargarDatosApi() {
-                fetch(apiUrl)
-                    .then(res => res.json())
-                    .then(data => {
-                        datosGlobales = data;
-                        poblarSelector(data);
-                        renderizarTabla();
-                    });
+        function descargarExcel() {
+            if (datosGlobales.length === 0) {
+                alert("No hay registros para descargar.");
+                return;
             }
+            let csvContent = "data:text/csv;charset=utf-8,No. Cuenta,Nombre,Telefono,Correo,Carrera,Semestre\n";
+            datosGlobales.forEach(u => {
+                csvContent += `${u.numero_cuenta},${u.nombre},${u.telefono},${u.correo},${u.carrera},${u.semestre}\n`;
+            });
+            const encodedUri = encodeURI(csvContent);
+            const link = document.createElement("a");
+            link.setAttribute("href", encodedUri);
+            link.setAttribute("download", "alumnos_ica.csv");
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+        }
 
-            function poblarSelector(data) {
-                const selector = document.getElementById('filtro-semestre');
-                const actual = selector.value;
-                selector.innerHTML = '<option value="todos">Mostrar Todos</option>';
-                const semestresUnicos = [...new Set(data.map(u => u.semestre))];
-                semestresUnicos.forEach(sem => {
-                    selector.innerHTML += `<option value="${sem}">${sem}</option>`;
-                });
-                selector.value = actual; 
-            }
-
-            function renderizarTabla() {
-                const filtro = document.getElementById('filtro-semestre').value;
-                const tbody = document.querySelector('#tabla-usuarios tbody');
-                tbody.innerHTML = ''; 
-
-                const datosFiltrados = (filtro === "todos") ? datosGlobales : datosGlobales.filter(u => u.semestre === filtro);
-
-                datosFiltrados.forEach(u => {
-                    tbody.innerHTML += `<tr>
-                        <td>${u.numero_cuenta}</td>
-                        <td>${u.nombre}</td>
-                        <td>${u.telefono}</td>
-                        <td>${u.correo}</td>
-                        <td>${u.carrera}</td>
-                        <td><strong>${u.semestre}</strong></td>
-                        <td><a class="enlace-pdf" href="http://192.168.49.2:30090/pdfs/${u.numero_cuenta}_historial.pdf" target="_blank">📄 Abrir PDF</a></td>
-                        <td>
-                            <button class="btn-editar" onclick="editarUsuario(${u.id})">Editar</button>
-                            <button class="btn-borrar" onclick="borrarUsuario(${u.id})">Borrar</button>
-                        </td>
-                    </tr>`;
-                });
-            }
-            
-            function borrarUsuario(id) {
-                if(confirm("¿Estás seguro de que deseas eliminar este registro?")) {
-                    fetch(`${apiUrl}/${id}`, { method: 'DELETE' })
-                    .then(res => res.json())
-                    .then(data => { if(data.status === "Éxito") { cargarDatosApi(); } });
-                }
-            }
-
-            function editarUsuario(id) {
-                const u = datosGlobales.find(user => user.id === id);
-                
-                const datosActualizados = {
-                    numero_cuenta: prompt("Número de Cuenta:", u.numero_cuenta) || u.numero_cuenta,
-                    nombre: (prompt("Nombre Completo:", u.nombre) || u.nombre).toUpperCase(),
-                    telefono: prompt("Teléfono:", u.telefono) || u.telefono,
-                    correo: (prompt("Correo:", u.correo) || u.correo).toLowerCase(),
-                    carrera: (prompt("Carrera:", u.carrera) || u.carrera).toUpperCase(),
-                    semestre: prompt("Semestre:", u.semestre) || u.semestre
-                };
-
-                fetch(`${apiUrl}/${id}`, {
-                    method: 'PUT',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify(datosActualizados)
+        function eliminarUsuario(numero_cuenta) {
+            if (confirm(`¿Estás seguro de que deseas eliminar al alumno con cuenta ${numero_cuenta}? Esta acción no se puede deshacer.`)) {
+                fetch(`${apiUrl}/${numero_cuenta}`, {
+                    method: 'DELETE'
                 })
                 .then(res => res.json())
-                .then(data => { if(data.status === "Éxito") { cargarDatosApi(); } });
+                .then(data => {
+                    alert("Usuario eliminado correctamente.");
+                    cargarDatosApi(); 
+                })
+                .catch(err => console.error("Error al eliminar:", err));
             }
+        }
 
-            function descargarExcel() {
-                const filtro = document.getElementById('filtro-semestre').value;
-                const datosAExportar = (filtro === "todos") ? datosGlobales : datosGlobales.filter(u => u.semestre === filtro);
-
-                if (datosAExportar.length === 0) {
-                    alert("No hay registros para descargar.");
-                    return;
-                }
-
-                let csvContent = "No. Cuenta,Nombre,Telefono,Correo,Carrera,Semestre\n";
-
-                datosAExportar.forEach(u => {
-                    csvContent += `"${u.numero_cuenta}","${u.nombre}","${u.telefono}","${u.correo}","${u.carrera}","${u.semestre}"\n`;
-                });
-
-                const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
-                const url = URL.createObjectURL(blob);
-                const link = document.createElement("a");
-                
-                link.setAttribute("href", url);
-                link.setAttribute("download", `Alumnos_ICA_${filtro}.csv`);
-                link.style.visibility = 'hidden';
-                
-                document.body.appendChild(link);
-                link.click();
-                document.body.removeChild(link);
+        function editarUsuario(numero_cuenta) {
+            const nuevoSemestre = prompt("Ingresa el nuevo semestre para este alumno (ej. 2026-2):");
+            if (nuevoSemestre !== null && nuevoSemestre.trim() !== "") {
+                fetch(`${apiUrl}/${numero_cuenta}`, {
+                    method: 'PUT',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ semestre: nuevoSemestre })
+                })
+                .then(res => res.json())
+                .then(data => {
+                    alert("Registro actualizado correctamente.");
+                    cargarDatosApi(); 
+                })
+                .catch(err => console.error("Error al editar:", err));
             }
-        </script>
-    </body>
-    </html>
+        }
+    </script>
+</body>
+</html>
