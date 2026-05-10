@@ -12,7 +12,7 @@ data:
   main.py: |
     from fastapi import FastAPI, File, UploadFile, Form
     from fastapi.middleware.cors import CORSMiddleware
-    from fastapi.staticfiles import StaticFiles
+    from fastapi.responses import FileResponse
     from pydantic import BaseModel
     import pymysql
     import os
@@ -33,9 +33,7 @@ data:
     DB_PASS = os.getenv("DB_PASS", "1ca_01")
     DB_NAME = os.getenv("DB_NAME", "gestion_usuarios")
 
-    # Asegurar que exista la carpeta y exponerla para descargar los PDFs
     os.makedirs("/app/pdfs", exist_ok=True)
-    app.mount("/pdfs", StaticFiles(directory="/app/pdfs"), name="pdfs")
 
     def get_db_connection():
         return pymysql.connect(
@@ -49,7 +47,7 @@ data:
         telefono: str
         correo: str
         carrera: str
-        semestre: str 
+        semestre: str
 
     @app.get("/usuarios")
     def obtener_usuarios():
@@ -57,13 +55,12 @@ data:
             conn = get_db_connection()
             with conn.cursor() as cursor:
                 cursor.execute("SELECT * FROM usuarios")
-                result = cursor.fetchall()
+                usuarios = cursor.fetchall()
             conn.close()
-            return result
+            return usuarios
         except Exception as e:
-            return []
+            return {"status": "Error", "detalle": str(e)}
 
-    # NUEVO: Endpoint POST modificado para aceptar FormData y Archivos
     @app.post("/usuarios")
     def crear_usuario(
         numero_cuenta: str = Form(...),
@@ -75,12 +72,10 @@ data:
         historial_pdf: UploadFile = File(...)
     ):
         try:
-            # 1. Guardar el PDF físicamente en el PVC
-            file_path = f"/app/pdfs/{numero_cuenta}_historial.pdf"
+            file_path = f"/app/pdfs/{numero_cuenta}.pdf"
             with open(file_path, "wb") as buffer:
                 shutil.copyfileobj(historial_pdf.file, buffer)
 
-            # 2. Guardar los datos en MySQL
             conn = get_db_connection()
             with conn.cursor() as cursor:
                 sql = "INSERT INTO usuarios (numero_cuenta, nombre, telefono, correo, carrera, semestre) VALUES (%s, %s, %s, %s, %s, %s)"
@@ -88,9 +83,19 @@ data:
                 cursor.execute(sql, val)
             conn.commit()
             conn.close()
-            return {"status": "Éxito"}
+            return {"status": "Éxito", "mensaje": "Usuario y PDF guardados correctamente."}
         except Exception as e:
             return {"status": "Error", "detalle": str(e)}
+
+    # --- NUEVA RUTA EXPLÍCITA PARA VER PDFS ---
+    @app.get("/ver-pdf/{numero_cuenta}")
+    def ver_pdf(numero_cuenta: str):
+        file_path = f"/app/pdfs/{numero_cuenta}.pdf"
+        if os.path.exists(file_path):
+            return FileResponse(file_path, media_type="application/pdf")
+        else:
+            # Si falla, ¡nos dirá exactamente dónde buscó!
+            return {"Error": "Archivo no encontrado", "Ruta_buscada": file_path}
 
     @app.put("/usuarios/{usuario_id}")
     def actualizar_usuario(usuario_id: int, usuario: UsuarioNuevo):
@@ -111,18 +116,16 @@ data:
         try:
             conn = get_db_connection()
             with conn.cursor() as cursor:
-                # SUPERPODER: Buscamos el número de cuenta antes de borrar para eliminar también el PDF
                 cursor.execute("SELECT numero_cuenta FROM usuarios WHERE id = %s", (usuario_id,))
                 user = cursor.fetchone()
                 if user:
                     file_path = f"/app/pdfs/{user['numero_cuenta']}.pdf"
                     if os.path.exists(file_path):
-                        os.remove(file_path) # Liberamos espacio en el disco
+                        os.remove(file_path)
 
-                # Ahora sí, borramos de la base de datos
                 cursor.execute("DELETE FROM usuarios WHERE id = %s", (usuario_id,))
             conn.commit()
             conn.close()
-            return {"status": "Éxito", "mensaje": "Usuario y PDF eliminados permanentemente."}
+            return {"status": "Éxito", "mensaje": "Usuario y PDF eliminados."}
         except Exception as e:
             return {"status": "Error", "detalle": str(e)}
