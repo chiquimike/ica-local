@@ -47,7 +47,7 @@ spec:
         - name: codigo-vol
           mountPath: /app/requirements.txt
           subPath: requirements.txt
-        # NUEVO: Montaje del disco duro para los PDFs
+        # El disco duro persistente para PDFs
         - name: pdf-storage
           mountPath: /app/pdfs
       volumes:

@@ -111,9 +111,18 @@ data:
         try:
             conn = get_db_connection()
             with conn.cursor() as cursor:
+                # SUPERPODER: Buscamos el número de cuenta antes de borrar para eliminar también el PDF
+                cursor.execute("SELECT numero_cuenta FROM usuarios WHERE id = %s", (usuario_id,))
+                user = cursor.fetchone()
+                if user:
+                    file_path = f"/app/pdfs/{user['numero_cuenta']}.pdf"
+                    if os.path.exists(file_path):
+                        os.remove(file_path) # Liberamos espacio en el disco
+
+                # Ahora sí, borramos de la base de datos
                 cursor.execute("DELETE FROM usuarios WHERE id = %s", (usuario_id,))
             conn.commit()
             conn.close()
-            return {"status": "Éxito", "mensaje": "Usuario eliminado."}
+            return {"status": "Éxito", "mensaje": "Usuario y PDF eliminados permanentemente."}
         except Exception as e:
-            return {"status": "Error"}
+            return {"status": "Error", "detalle": str(e)}
