@@ -5,23 +5,20 @@
     <title>Panel de Administración - ICA</title>
     
     <style>
-        body { font-family: 'Roboto', sans-serif; background-color: #e9ecef; padding: 20px; }
-        h1 { color: #002b7a; text-align: center; }
+        body { font-family: Arial, sans-serif; background-color: #e9ecef; padding: 20px; }
+        h1 { color: #0056b3; text-align: center; }
         .controles { 
             background: white; padding: 15px; border-radius: 8px; 
             margin-bottom: 20px; display: none; justify-content: space-between; 
             align-items: center; box-shadow: 0 0 10px rgba(0,0,0,0.1); 
         }
-        select { padding: 8px; font-size: 16px; border-radius: 4px; }
-        table { width: 100%; border-collapse: collapse; background: white; display: none; }
+        table { width: 100%; border-collapse: collapse; background: white; box-shadow: 0 0 10px rgba(0,0,0,0.1); }
         th, td { padding: 12px; border: 1px solid #ddd; text-align: left; }
-        th { background-color: #002b7a; color: white; }
+        th { background-color: #0056b3; color: white; }
         tr:nth-child(even) { background-color: #f8f9fa; }
-        .btn-excel { background-color: #28a745; color: white; border: none; padding: 10px; cursor: pointer; border-radius: 5px; font-weight: bold; }
         .btn-editar { background-color: #ffc107; color: black; border: none; padding: 5px 10px; cursor: pointer; border-radius: 3px; font-weight: bold; }
-        .btn-editar:hover { background-color: #e0a800; }
         .btn-eliminar { background-color: #dc3545; color: white; border: none; padding: 5px 10px; cursor: pointer; border-radius: 3px; margin-left: 5px; font-weight: bold; }
-        .btn-eliminar:hover { background-color: #c82333; }
+        .btn-excel { background-color: #28a745; color: white; border: none; padding: 10px; cursor: pointer; border-radius: 5px; font-weight: bold; }
         #login-container { text-align: center; margin-top: 100px; }
     </style>
 
@@ -30,42 +27,31 @@
         let datosGlobales = [];
 
         function handleCredentialResponse(response) {
-            console.log("¡Acceso concedido por Google!");
+            console.log("¡Google validó el acceso!");
             sessionStorage.setItem('token_ica', response.credential);
-            mostrarPanelYDatos();
+            desbloquearInterfaz();
         }
 
-        function mostrarPanelYDatos() {
-            const login = document.getElementById('login-container');
-            const panel = document.getElementById('contenido-profesor');
-            const controles = document.getElementById('controles');
-
-            if (login) login.style.display = 'none';
-            if (panel) panel.style.display = 'block';
-            if (controles) controles.style.display = 'flex';
-
+        function desbloquearInterfaz() {
+            document.getElementById('login-container').style.display = 'none';
+            document.getElementById('contenido-profesor').style.display = 'block';
+            document.getElementById('controles').style.display = 'flex';
             cargarDatosApi();
         }
 
         function cargarDatosApi() {
-            console.log("Pidiendo datos a la API...");
             fetch(apiUrl)
-                .then(res => {
-                    if (!res.ok) throw new Error("Error en la red");
-                    return res.json();
-                })
+                .then(res => res.json())
                 .then(data => {
                     datosGlobales = data;
-                    if (typeof renderizarTabla === 'function') {
-                        renderizarTabla(data);
-                    }
+                    renderizarTabla(data);
                 })
-                .catch(err => console.error("Error en la API:", err));
+                .catch(err => console.error("Error al cargar datos:", err));
         }
 
         window.onload = function() {
             if (sessionStorage.getItem('token_ica')) {
-                mostrarPanelYDatos();
+                desbloquearInterfaz();
             }
         };
     </script>
@@ -75,17 +61,13 @@
 
 <body>
     <div id="login-container">
-        <h2 style="color: #002b7a;">Innovation Center Aragón</h2>
-        <p>Identifícate para gestionar el Servicio Social</p>
+        <h2 style="color: #0056b3;">Innovation Center Aragón</h2>
+        <p>Inicia sesión para gestionar el Servicio Social</p>
         <div id="g_id_onload"
              data-client_id="374163159167-hj3aofouk0mae2ksk0qq5agevdlengfj.apps.googleusercontent.com"
-             data-context="signin"
-             data-ux_mode="popup"
-             data-callback="handleCredentialResponse"
-             data-auto_prompt="false">
+             data-callback="handleCredentialResponse">
         </div>
-        <div class="g_id_signin" data-type="standard" data-shape="rectangular" data-theme="outline" data-text="signin_with" data-size="large" data-logo_alignment="left">
-        </div>
+        <div class="g_id_signin" data-type="standard"></div>
     </div>
 
     <div id="contenido-profesor" style="display: none;">
@@ -94,12 +76,10 @@
         <div id="controles" class="controles">
             <div>
                 <label><strong>Filtrar por Semestre: </strong></label>
-                <select id="filtro-semestre" onchange="filtrarPorSemestre()">
-                    <option value="Todos">Mostrar Todos</option>
-                    <option value="2026-II">2026-1</option>
-                    <option value="2026-I">2025-2</option>
-                    <option value="2025-II">2026-1</option>
-                    <option value="2025-I">2025-2</option>
+                <select id="filtro-semestre" onchange="renderizarTabla()">
+                    <option value="todos">Mostrar Todos</option>
+                    <option value="2026-1">2026-I</option>
+                    <option value="2025-2">2025-II</option>
                 </select>
             </div>
             <button class="btn-excel" onclick="descargarExcel()">📥 Descargar Excel</button>
@@ -108,106 +88,89 @@
         <table id="tabla-usuarios">
             <thead>
                 <tr>
-                    <th>No. Cuenta</th>
-                    <th>Nombre</th>
-                    <th>Teléfono</th>
-                    <th>Correo</th>
-                    <th>Carrera</th>
-                    <th>Semestre</th>
-                    <th>Historial</th>
-                    <th>Acciones</th> </tr>
+                    <th>No. Cuenta</th><th>Nombre</th><th>Teléfono</th><th>Correo</th><th>Carrera</th><th>Semestre</th>
+                    <th>Historial</th><th>Acciones</th>
+                </tr>
             </thead>
             <tbody></tbody>
         </table>
+
+        <script>
+            function renderizarTabla(datos = datosGlobales) {
+                const filtro = document.getElementById('filtro-semestre').value;
+                const tbody = document.querySelector('#tabla-usuarios tbody');
+                tbody.innerHTML = '';
+
+                const usuariosFiltrados = (filtro === 'todos') ? datos : datos.filter(u => u.semestre === filtro);
+
+                usuariosFiltrados.forEach(u => {
+                    const tr = document.createElement('tr');
+                    tr.innerHTML = `
+                        <td>${u.numero_cuenta}</td>
+                        <td>${u.nombre}</td>
+                        <td>${u.telefono}</td>
+                        <td>${u.correo}</td>
+                        <td>${u.carrera}</td>
+                        <td>${u.semestre}</td>
+                        <td><a href="http://192.168.49.2.nip.io:30090/pdfs/${u.numero_cuenta}.pdf" target="_blank">📄 Ver</a></td>
+                        <td>
+                            <button class="btn-editar" onclick="editarUsuario('${u.id}')">✏️</button>
+                            <button class="btn-eliminar" onclick="eliminarUsuario('${u.id}')">🗑️</button>
+                        </td>
+                    `;
+                    tbody.appendChild(tr);
+                });
+            }
+
+            function eliminarUsuario(id) {
+                if(confirm("¿Seguro que deseas eliminar este registro?")) {
+                    fetch(`${apiUrl}/${id}`, { method: 'DELETE' })
+                        .then(res => res.json())
+                        .then(() => { alert("Eliminado"); cargarDatosApi(); });
+                }
+            }
+
+            function editarUsuario(id) {
+                const u = datosGlobales.find(user => user.id == id);
+                const nNombre = prompt("Nombre:", u.nombre);
+                const nTel = prompt("Teléfono:", u.telefono);
+                const nCor = prompt("Correo:", u.correo);
+                const nCar = prompt("Carrera:", u.carrera);
+                const nSem = prompt("Semestre:", u.semestre);
+
+                if(nNombre && nTel && nCor && nCar && nSem) {
+                    fetch(`${apiUrl}/${id}`, {
+                        method: 'PUT',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({
+                            numero_cuenta: u.numero_cuenta,
+                            nombre: nNombre.toUpperCase(),
+                            telefono: nTel,
+                            correo: nCor.toLowerCase(),
+                            carrera: nCar.toUpperCase(),
+                            semestre: nSem
+                        })
+                    })
+                    .then(res => res.json())
+                    .then(() => { alert("Actualizado"); cargarDatosApi(); });
+                }
+            }
+
+            function descargarExcel() {
+                const filtro = document.getElementById('filtro-semestre').value;
+                const datosAExportar = (filtro === "todos") ? datosGlobales : datosGlobales.filter(u => u.semestre === filtro);
+                let csv = "No. Cuenta,Nombre,Telefono,Correo,Carrera,Semestre\n";
+                datosAExportar.forEach(u => {
+                    csv += `"${u.numero_cuenta}","${u.nombre}","${u.telefono}","${u.correo}","${u.carrera}","${u.semestre}"\n`;
+                });
+                const blob = new Blob([csv], { type: 'text/csv' });
+                const url = window.URL.createObjectURL(blob);
+                const a = document.createElement("a");
+                a.href = url;
+                a.download = `Alumnos_ICA_${filtro}.csv`;
+                a.click();
+            }
+        </script>
     </div>
-
-    <script>
-        function renderizarTabla(usuarios) {
-            const tbody = document.querySelector('#tabla-usuarios tbody');
-            const tabla = document.getElementById('tabla-usuarios');
-            if (!tbody) return;
-
-            tbody.innerHTML = '';
-            usuarios.forEach(u => {
-                const tr = document.createElement('tr');
-                tr.innerHTML = `
-                    <td>${u.numero_cuenta}</td>
-                    <td>${u.nombre}</td>
-                    <td>${u.telefono}</td>
-                    <td>${u.correo}</td>
-                    <td>${u.carrera}</td>
-                    <td>${u.semestre}</td>
-                    <td><a href="http://192.168.49.2.nip.io:30090/ver-pdf/${u.numero_cuenta}" target="_blank">📄 Ver PDF</a></td>
-                    <td>
-                        <button class="btn-editar" onclick="editarUsuario('${u.numero_cuenta}')">✏️</button>
-                        <button class="btn-eliminar" onclick="eliminarUsuario('${u.numero_cuenta}')">🗑️</button>
-                    </td>
-                `;
-                tbody.appendChild(tr);
-            });
-            tabla.style.display = 'table';
-        }
-
-        function filtrarPorSemestre() {
-            const filtro = document.getElementById('filtro-semestre').value;
-            if (filtro === 'todos') {
-                renderizarTabla(datosGlobales);
-            } else {
-                const filtrados = datosGlobales.filter(u => u.semestre === filtro);
-                renderizarTabla(filtrados);
-            }
-        }
-
-        function descargarExcel() {
-            if (datosGlobales.length === 0) {
-                alert("No hay registros para descargar.");
-                return;
-            }
-            let csvContent = "data:text/csv;charset=utf-8,No. Cuenta,Nombre,Telefono,Correo,Carrera,Semestre\n";
-            datosGlobales.forEach(u => {
-                csvContent += `${u.numero_cuenta},${u.nombre},${u.telefono},${u.correo},${u.carrera},${u.semestre}\n`;
-            });
-            const encodedUri = encodeURI(csvContent);
-            const link = document.createElement("a");
-            link.setAttribute("href", encodedUri);
-            link.setAttribute("download", "alumnos_ica.csv");
-            document.body.appendChild(link);
-            link.click();
-            document.body.removeChild(link);
-        }
-
-        function eliminarUsuario(numero_cuenta) {
-            if (confirm(`¿Estás seguro de que deseas eliminar al alumno con cuenta ${numero_cuenta}? Esta acción no se puede deshacer.`)) {
-                fetch(`${apiUrl}/${numero_cuenta}`, {
-                    method: 'DELETE'
-                })
-                .then(res => res.json())
-                .then(data => {
-                    alert("Usuario eliminado correctamente.");
-                    cargarDatosApi(); 
-                })
-                .catch(err => console.error("Error al eliminar:", err));
-            }
-        }
-
-        function editarUsuario(numero_cuenta) {
-            const nuevoSemestre = prompt("Ingresa el nuevo semestre para este alumno (ej. 2026-2):");
-            if (nuevoSemestre !== null && nuevoSemestre.trim() !== "") {
-                fetch(`${apiUrl}/${numero_cuenta}`, {
-                    method: 'PUT',
-                    headers: {
-                        'Content-Type': 'application/json'
-                    },
-                    body: JSON.stringify({ semestre: nuevoSemestre })
-                })
-                .then(res => res.json())
-                .then(data => {
-                    alert("Registro actualizado correctamente.");
-                    cargarDatosApi(); 
-                })
-                .catch(err => console.error("Error al editar:", err));
-            }
-        }
-    </script>
 </body>
 </html>
