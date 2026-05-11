@@ -3,7 +3,6 @@
 <head>
     <meta charset="UTF-8">
     <title>Panel de Administración - ICA</title>
-    
     <style>
         body { font-family: Arial, sans-serif; background-color: #e9ecef; padding: 20px; }
         h1 { color: #0056b3; text-align: center; }
@@ -27,7 +26,7 @@
         let datosGlobales = [];
 
         function handleCredentialResponse(response) {
-            console.log("¡Google validó el acceso!");
+            console.log("¡Token de Google obtenido!");
             sessionStorage.setItem('token_ica', response.credential);
             desbloquearInterfaz();
         }
@@ -40,13 +39,20 @@
         }
 
         function cargarDatosApi() {
-            fetch(apiUrl)
-                .then(res => res.json())
-                .then(data => {
-                    datosGlobales = data;
-                    renderizarTabla(data);
-                })
-                .catch(err => console.error("Error al cargar datos:", err));
+            const token = sessionStorage.getItem('token_ica');
+            fetch(apiUrl, {
+                method: 'GET',
+                headers: { 'Authorization': 'Bearer ' + token }
+            })
+            .then(res => {
+                if (res.status === 401) throw new Error("Sesión expirada o no autorizada");
+                return res.json();
+            })
+            .then(data => {
+                datosGlobales = data;
+                renderizarTabla(data);
+            })
+            .catch(err => alert("Error: " + err.message));
         }
 
         window.onload = function() {
@@ -55,7 +61,6 @@
             }
         };
     </script>
-
     <script src="https://accounts.google.com/gsi/client" async defer></script>
 </head>
 
@@ -126,9 +131,13 @@
 
             function eliminarUsuario(id) {
                 if(confirm("¿Seguro que deseas eliminar este registro?")) {
-                    fetch(`${apiUrl}/${id}`, { method: 'DELETE' })
-                        .then(res => res.json())
-                        .then(() => { alert("Eliminado"); cargarDatosApi(); });
+                    const token = sessionStorage.getItem('token_ica');
+                    fetch(`${apiUrl}/${id}`, { 
+                        method: 'DELETE',
+                        headers: { 'Authorization': 'Bearer ' + token }
+                    })
+                    .then(res => res.json())
+                    .then(() => { alert("Registro eliminado"); cargarDatosApi(); });
                 }
             }
 
@@ -141,9 +150,13 @@
                 const nSem = prompt("Semestre:", u.semestre);
 
                 if(nNombre && nTel && nCor && nCar && nSem) {
+                    const token = sessionStorage.getItem('token_ica');
                     fetch(`${apiUrl}/${id}`, {
                         method: 'PUT',
-                        headers: { 'Content-Type': 'application/json' },
+                        headers: { 
+                            'Content-Type': 'application/json',
+                            'Authorization': 'Bearer ' + token
+                        },
                         body: JSON.stringify({
                             numero_cuenta: u.numero_cuenta,
                             nombre: nNombre.toUpperCase(),
@@ -154,7 +167,7 @@
                         })
                     })
                     .then(res => res.json())
-                    .then(() => { alert("Actualizado"); cargarDatosApi(); });
+                    .then(() => { alert("Registro actualizado"); cargarDatosApi(); });
                 }
             }
 
@@ -172,6 +185,7 @@
                 a.download = `Alumnos_ICA_${filtro}.csv`;
                 a.click();
             }
+
         </script>
     </div>
 </body>

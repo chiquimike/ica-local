@@ -9,16 +9,20 @@ data:
     pymysql
     pydantic
     python-multipart
+    google-auth
+    requests
   main.py: |
-    from fastapi import FastAPI, File, UploadFile, Form
+    from fastapi import FastAPI, File, UploadFile, Form, Depends, HTTPException, Header
     from fastapi.middleware.cors import CORSMiddleware
     from fastapi.responses import FileResponse
     from pydantic import BaseModel
+    from google.oauth2 import id_token
+    from google.auth.transport import requests as google_requests
     import pymysql
     import os
     import shutil
 
-    app = FastAPI(title="API Gestión de Usuarios - ICA")
+    app = FastAPI(title="API Gestión de Usuarios - ICA (Asegurada)")
 
     app.add_middleware(
         CORSMiddleware,
@@ -32,6 +36,8 @@ data:
     DB_USER = os.getenv("DB_USER", "root")
     DB_PASS = os.getenv("DB_PASS", "1ca_01")
     DB_NAME = os.getenv("DB_NAME", "gestion_usuarios")
+    
+    GOOGLE_CLIENT_ID = "374163159167-hj3aofouk0mae2ksk0qq5agevdlengfj.apps.googleusercontent.com" 
 
     os.makedirs("/app/pdfs", exist_ok=True)
 
@@ -41,6 +47,24 @@ data:
             cursorclass=pymysql.cursors.DictCursor
         )
 
+    # --- EL NUEVO GUARDIA DE SEGURIDAD (Validación JWT) ---
+    def verificar_token(authorization: str = Header(None)):
+        if not authorization or not authorization.startswith("Bearer "):
+            raise HTTPException(status_code=401, detail="Falta el gafete de seguridad (Token)")
+        
+        token = authorization.split(" ")[1]
+        try:
+            # Google verifica criptográficamente que el token no sea falso
+            idinfo = id_token.verify_oauth2_token(token, google_requests.Request(), GOOGLE_CLIENT_ID)
+            
+            # ¡Opcional pero brutal! Descomenta esto para exigir correo UNAM:
+            # if idinfo.get('hd') != 'aragon.unam.mx':
+            #     raise HTTPException(status_code=403, detail="Solo correos @aragon.unam.mx autorizados")
+            
+            return idinfo
+        except ValueError:
+            raise HTTPException(status_code=401, detail="Token inválido o expirado")
+
     class UsuarioNuevo(BaseModel):
         numero_cuenta: str
         nombre: str
@@ -49,8 +73,10 @@ data:
         carrera: str
         semestre: str
 
+    # Fíjate cómo agregamos "Depends(verificar_token)" para proteger las rutas vitales
+
     @app.get("/usuarios")
-    def obtener_usuarios():
+    def obtener_usuarios(user_info: dict = Depends(verificar_token)):
         try:
             conn = get_db_connection()
             with conn.cursor() as cursor:
@@ -69,7 +95,8 @@ data:
         correo: str = Form(...),
         carrera: str = Form(...),
         semestre: str = Form(...),
-        historial_pdf: UploadFile = File(...)
+        historial_pdf: UploadFile = File(...),
+        user_info: dict = Depends(verificar_token) # <--- Protegido
     ):
         try:
             file_path = f"/app/pdfs/{numero_cuenta}.pdf"
@@ -87,18 +114,16 @@ data:
         except Exception as e:
             return {"status": "Error", "detalle": str(e)}
 
-    # --- NUEVA RUTA EXPLÍCITA PARA VER PDFS ---
     @app.get("/ver-pdf/{numero_cuenta}")
     def ver_pdf(numero_cuenta: str):
+        # Esta la dejamos pública porque el navegador la abre directo en otra pestaña
         file_path = f"/app/pdfs/{numero_cuenta}.pdf"
         if os.path.exists(file_path):
             return FileResponse(file_path, media_type="application/pdf")
-        else:
-            # Si falla, ¡nos dirá exactamente dónde buscó!
-            return {"Error": "Archivo no encontrado", "Ruta_buscada": file_path}
+        return {"Error": "Archivo no encontrado"}
 
     @app.put("/usuarios/{usuario_id}")
-    def actualizar_usuario(usuario_id: int, usuario: UsuarioNuevo):
+    def actualizar_usuario(usuario_id: int, usuario: UsuarioNuevo, user_info: dict = Depends(verificar_token)): # <--- Protegido
         try:
             conn = get_db_connection()
             with conn.cursor() as cursor:
@@ -112,7 +137,7 @@ data:
             return {"status": "Error", "detalle": str(e)}
 
     @app.delete("/usuarios/{usuario_id}")
-    def eliminar_usuario(usuario_id: int):
+    def eliminar_usuario(usuario_id: int, user_info: dict = Depends(verificar_token)): # <--- Protegido
         try:
             conn = get_db_connection()
             with conn.cursor() as cursor:
@@ -122,7 +147,6 @@ data:
                     file_path = f"/app/pdfs/{user['numero_cuenta']}.pdf"
                     if os.path.exists(file_path):
                         os.remove(file_path)
-
                 cursor.execute("DELETE FROM usuarios WHERE id = %s", (usuario_id,))
             conn.commit()
             conn.close()

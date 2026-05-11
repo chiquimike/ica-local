@@ -12,27 +12,21 @@
         input, select { width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 4px; box-sizing: border-box; }
         button { width: 100%; padding: 10px 15px; background-color: #28a745; color: white; border: none; border-radius: 4px; cursor: pointer; font-size: 16px; margin-top: 10px;}
         button:hover { background-color: #218838; }
-        
-        /* Estilos para el contenedor de login */
         #login-container { text-align: center; background: white; padding: 30px; border-radius: 8px; box-shadow: 0 0 10px rgba(0,0,0,0.1); margin-top: 50px; }
     </style>
 
     <script>
         function handleCredentialResponse(response) {
-            console.log("¡Identidad validada para el registro!");
             sessionStorage.setItem('token_ica', response.credential);
             desbloquearFormulario();
         }
 
         function desbloquearFormulario() {
-            const login = document.getElementById('login-container');
-            const formulario = document.getElementById('formulario-privado');
-            if (login) login.style.display = 'none';
-            if (formulario) formulario.style.display = 'block';
+            document.getElementById('login-container').style.display = 'none';
+            document.getElementById('formulario-privado').style.display = 'block';
         }
 
         window.onload = function() {
-            // Persistencia: Si ya se logueó en el panel del profesor, entra directo
             if (sessionStorage.getItem('token_ica')) {
                 desbloquearFormulario();
             }
@@ -42,15 +36,14 @@
 </head>
 
 <body>
-
     <div id="login-container">
         <h2 style="color: #0056b3;">Acceso al Registro - ICA</h2>
-        <p>Inicia sesión con tu cuenta institucional para llenar tu solicitud.</p>
+        <p>Inicia sesión con tu cuenta para llenar tu solicitud.</p>
         <div id="g_id_onload"
              data-client_id="374163159167-hj3aofouk0mae2ksk0qq5agevdlengfj.apps.googleusercontent.com"
              data-callback="handleCredentialResponse">
         </div>
-        <div class="g_id_signin" data-type="standard" data-theme="outline" data-size="large"></div>
+        <div class="g_id_signin" data-type="standard"></div>
     </div>
 
     <div id="formulario-privado" style="display: none;">
@@ -59,24 +52,20 @@
             <form id="form-registro">
                 <div class="campo-formulario">
                     <label for="cuenta">Número de Cuenta:</label>
-                    <input type="text" id="cuenta" name="numero_cuenta" required maxlength="9" pattern="\[0-9]{9}">
+                    <input type="text" id="cuenta" name="numero_cuenta" required maxlength="9">
                 </div>
-
                 <div class="campo-formulario">
                     <label for="nombre">Nombre Completo:</label>
                     <input type="text" id="nombre" name="nombre" required>
                 </div>
-
                 <div class="campo-formulario">
                     <label for="telefono">Teléfono:</label>
                     <input type="tel" id="telefono" name="telefono" required maxlength="10">
                 </div>
-
                 <div class="campo-formulario">
                     <label for="correo">Correo Electrónico:</label>
                     <input type="email" id="correo" name="correo" required>
                 </div>
-
                 <div class="campo-formulario">
                     <label for="carrera">Carrera:</label>
                     <select id="carrera" name="carrera" required>
@@ -86,7 +75,6 @@
                         <option value="CIVIL">Ing. Civil</option>
                     </select>
                 </div>
-
                 <div class="campo-formulario">
                     <label for="semestre">Semestre Actual:</label>
                     <select id="semestre" name="semestre" required>
@@ -96,12 +84,10 @@
                         <option value="2026-I">2026-I</option>
                     </select>
                 </div>
-
                 <div class="campo-formulario">
                     <label for="pdf">Historial Académico (PDF):</label>
                     <input type="file" id="pdf" name="historial_pdf" accept="application/pdf" required>
                 </div>
-
                 <button type="submit">Enviar Registro</button>
             </form>
         </div>
@@ -111,13 +97,11 @@
 
             document.getElementById('form-registro').addEventListener('submit', function(e) {
                 e.preventDefault();
+                const token = sessionStorage.getItem('token_ica');
+                const archivo = document.getElementById('pdf').files[0];
 
-                const archivoInput = document.getElementById('pdf');
-                const archivo = archivoInput.files[0];
-
-                // Validación de tamaño (1MB)
                 if (archivo && archivo.size > 1024 * 1024) {
-                    alert("El archivo es demasiado grande (" + (archivo.size / 1024).toFixed(2) + " KB). El límite es de 1 MB.");
+                    alert("El archivo excede 1 MB.");
                     return;
                 }
 
@@ -132,21 +116,19 @@
 
                 fetch(apiUrl, {
                     method: 'POST',
+                    headers: { 'Authorization': 'Bearer ' + token },
                     body: formData
                 })
                 .then(res => res.json())
                 .then(data => {
                     if(data.status === "Éxito") { 
-                        alert("¡Registro completado exitosamente!"); 
+                        alert("¡Registro guardado!"); 
                         document.getElementById('form-registro').reset(); 
                     } else {
                         alert("Error: " + data.detalle);
                     }
                 })
-                .catch(err => {
-                    console.error("Error en el registro:", err);
-                    alert("Hubo un fallo al conectar con el servidor.");
-                });
+                .catch(err => alert("Fallo al conectar con el servidor."));
             });
         </script>
     </div>
