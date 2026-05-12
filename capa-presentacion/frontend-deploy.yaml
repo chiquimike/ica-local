@@ -27,14 +27,14 @@ spec:
         volumeMounts:
         - name: html-volume
           mountPath: /usr/share/nginx/html
-        # NUEVO: Montaje de la carpeta de imágenes
+        # Montaje de la carpeta de imágenes
         - name: imagenes-vol
           mountPath: /usr/share/nginx/html/img
       volumes:
       - name: html-volume
         configMap:
           name: frontend-codigo
-      # NUEVO: Puente al disco duro local (Minikube/K3s)
+      # Puente al disco duro local (Minikube/K3s)
       - name: imagenes-vol
         hostPath:
           path: /data/imagenes

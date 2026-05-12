@@ -48,6 +48,9 @@ spec:
           mountPath: /app/requirements.txt
           subPath: requirements.txt
         # El disco duro persistente para PDFs
+        # Si hacemos un "kubectl delete -k ." VA A BORRAR LOS PDF 
+        # Ahorita que estamos en "Desarrollo" no hay problema pero ya en Produccion
+        # Esta wea no hay que borrarla
         - name: pdf-storage
           mountPath: /app/pdfs
       volumes:

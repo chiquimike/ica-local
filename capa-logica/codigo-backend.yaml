@@ -47,7 +47,7 @@ data:
             cursorclass=pymysql.cursors.DictCursor
         )
 
-    # --- EL NUEVO GUARDIA DE SEGURIDAD (Validación JWT) ---
+    # --- (Validación JWT) ---
     def verificar_token(authorization: str = Header(None)):
         if not authorization or not authorization.startswith("Bearer "):
             raise HTTPException(status_code=401, detail="Falta el gafete de seguridad (Token)")
@@ -57,7 +57,7 @@ data:
             # Google verifica criptográficamente que el token no sea falso
             idinfo = id_token.verify_oauth2_token(token, google_requests.Request(), GOOGLE_CLIENT_ID)
             
-            # ¡Opcional pero brutal! Descomenta esto para exigir correo UNAM:
+            # ¡Para más seguridad! Wuuuu Descomenta esto para exigir correo UNAM:
             # if idinfo.get('hd') != 'aragon.unam.mx':
             #     raise HTTPException(status_code=403, detail="Solo correos @aragon.unam.mx autorizados")
             
@@ -73,7 +73,7 @@ data:
         carrera: str
         semestre: str
 
-    # Fíjate cómo agregamos "Depends(verificar_token)" para proteger las rutas vitales
+    # Agregamos "Depends(verificar_token)" para proteger las rutas vitales
 
     @app.get("/usuarios")
     def obtener_usuarios(user_info: dict = Depends(verificar_token)):
