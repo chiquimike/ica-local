@@ -214,15 +214,28 @@ body {
     box-shadow: var(--shadow-hover) !important;
 }
 
+/* 1. Busca la regla .course-image, .classroom-image y reemplázala */
+/* Se han eliminado los bordes y añadido margen inferior y centrado automático */
 .course-image, .classroom-image {
     width: 100%;
-    height: 180px;
+    height: 200px;
     object-fit: cover;
     display: block;
-    border-bottom: 1px solid var(--border-card);
+    /* --- CAMBIOS AQUÍ --- */
+    border-bottom: none !important; /* Eliminamos la línea que rozaba */
+    margin: 0 auto 1.0rem auto;   /* Centra horizontalmente y da espacio abajo (1.5rem) */
+    /* -------------------- */
 }
 
-#cursos .course-image { object-fit: contain; background: #fafafa; }
+/* 2. Busca la regla #cursos .course-image y reemplázala */
+/* Mantenemos tus estilos específicos pero añadimos padding para que no roce los lados */
+#cursos .course-image { 
+    object-fit: contain; 
+    background: #fafafa; 
+    /* --- AÑADIDO --- */
+    padding: 3px; /* Espacio interno para que la imagen no toque los bordes del fondo gris */
+    /* -------------- */
+}
 
 .card-header-unam {
     background-color: var(--unam-azul);
@@ -405,9 +418,170 @@ body {
         transform: none;
     }
 }
+/* ============================================= */
+/* SERVICIO SOCIAL PRO LEVEL */
+/* ============================================= */
 
-.btn-editar { background-color: #ffc107; color: black; border: none; padding: 5px 10px; cursor: pointer; border-radius: 3px; }
-.btn-editar:hover { background-color: #e0a800; }
+.ss-hero {
+    background: linear-gradient(135deg, #002B5C, #1a659e);
+    color: white;
+    padding: 60px 30px;
+    border-radius: 20px;
+    text-align: center;
+    margin-bottom: 40px;
+    position: relative;
+    overflow: hidden;
+}
 
-.btn-eliminar { background-color: #dc3545; color: white; border: none; padding: 5px 10px; cursor: pointer; border-radius: 3px; margin-left: 5px; }
-.btn-eliminar:hover { background-color: #c82333; }
+/* glow sutil */
+.ss-hero::before {
+    content: '';
+    position: absolute;
+    width: 300px;
+    height: 300px;
+    background: rgba(197, 157, 26, 0.2);
+    filter: blur(100px);
+    top: -50px;
+    right: -50px;
+}
+
+.ss-hero h1 {
+    font-size: 2.5rem;
+    margin-bottom: 10px;
+}
+
+.ss-hero p {
+    max-width: 600px;
+    margin: auto;
+    opacity: 0.9;
+}
+
+/* ============================================= */
+/* CARDS MÁS PREMIUM */
+/* ============================================= */
+
+.card-unam {
+    position: relative;
+    overflow: hidden;
+}
+
+/* línea animada elegante */
+.card-unam::before {
+    content: '';
+    position: absolute;
+    width: 100%;
+    height: 4px;
+    top: 0;
+    left: 0;
+    background: linear-gradient(90deg, #C59D1A, #002B5C);
+    transform: scaleX(0);
+    transition: 0.4s ease;
+}
+
+.card-unam:hover::before {
+    transform: scaleX(1);
+}
+
+/* ============================================= */
+/* ICONOS (esto cambia TODO visualmente) */
+/* ============================================= */
+
+.card-info h3::before {
+    content: "⚡";
+    margin-right: 8px;
+    font-size: 1.2rem;
+}
+
+/* puedes personalizar cada uno */
+.card-unam:nth-child(2) h3::before { content: "💡"; }
+.card-unam:nth-child(3) h3::before { content: "🚀"; }
+
+/* ============================================= */
+/* CTA FINAL MÁS PRO */
+/* ============================================= */
+
+.card-unam:last-child {
+    background: linear-gradient(135deg, #f5f7fa, #e4ecf5);
+    border: none !important;
+}
+
+/* ============================================= */
+/* MICROINTERACCIONES */
+/* ============================================= */
+
+.btn-unam {
+    position: relative;
+    overflow: hidden;
+}
+
+.btn-unam::after {
+    content: '';
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    background: rgba(255,255,255,0.2);
+    top: 0;
+    left: -100%;
+    transition: 0.4s;
+}
+
+.btn-unam:hover::after {
+    left: 100%;
+}
+
+.ss-features {
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+  margin-top: 25px;
+}
+
+.feature {
+  display: flex;
+  align-items: center;
+  gap: 15px;
+  background: rgba(255,255,255,0.6);
+  padding: 12px 16px;
+  border-radius: 12px;
+  transition: 0.3s;
+}
+
+.feature:hover {
+  transform: translateX(5px);
+  background: rgba(255,255,255,0.9);
+}
+
+.feature span {
+  font-size: 1.5rem;
+}
+
+.steps {
+  display: flex;
+  justify-content: space-between;
+  margin-top: 30px;
+}
+
+.step {
+  text-align: center;
+}
+
+.step span {
+  display: inline-block;
+  background: var(--unam-azul);
+  color: white;
+  width: 35px;
+  height: 35px;
+  border-radius: 50%;
+  line-height: 35px;
+  font-weight: bold;
+  margin-bottom: 10px;
+}
+
+.badge {
+  background: rgba(0,43,92,0.1);
+  color: var(--unam-azul);
+  padding: 5px 10px;
+  border-radius: 20px;
+  font-size: 0.8rem;
+  margin-right: 5px;
+}
