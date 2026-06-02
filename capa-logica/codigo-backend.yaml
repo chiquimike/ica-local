@@ -99,7 +99,7 @@ data:
         user_info: dict = Depends(verificar_token) # <--- Protegido
     ):
         try:
-            file_path = f"/app/pdfs/{numero_cuenta}.pdf"
+            file_path = f"/app/pdfs/{nombre}.pdf"
             with open(file_path, "wb") as buffer:
                 shutil.copyfileobj(historial_pdf.file, buffer)
 
@@ -114,10 +114,10 @@ data:
         except Exception as e:
             return {"status": "Error", "detalle": str(e)}
 
-    @app.get("/ver-pdf/{numero_cuenta}")
-    def ver_pdf(numero_cuenta: str):
+    @app.get("/ver-pdf/{nombre}")
+    def ver_pdf(nombre: str):
         # Esta la dejamos pública porque el navegador la abre directo en otra pestaña
-        file_path = f"/app/pdfs/{numero_cuenta}.pdf"
+        file_path = f"/app/pdfs/{nombre}.pdf"
         if os.path.exists(file_path):
             return FileResponse(file_path, media_type="application/pdf")
         return {"Error": "Archivo no encontrado"}
@@ -127,6 +127,15 @@ data:
         try:
             conn = get_db_connection()
             with conn.cursor() as cursor:
+                # Si cambia el nombre, renombramos tambien el PDF para que siga vinculado
+                cursor.execute("SELECT nombre FROM usuarios WHERE id = %s", (usuario_id,))
+                anterior = cursor.fetchone()
+                if anterior and anterior['nombre'] != usuario.nombre:
+                    ruta_anterior = f"/app/pdfs/{anterior['nombre']}.pdf"
+                    ruta_nueva = f"/app/pdfs/{usuario.nombre}.pdf"
+                    if os.path.exists(ruta_anterior):
+                        os.rename(ruta_anterior, ruta_nueva)
+
                 sql = "UPDATE usuarios SET numero_cuenta=%s, nombre=%s, telefono=%s, correo=%s, carrera=%s, semestre=%s WHERE id=%s"
                 val = (usuario.numero_cuenta, usuario.nombre, usuario.telefono, usuario.correo, usuario.carrera, usuario.semestre, usuario_id)
                 cursor.execute(sql, val)
@@ -141,10 +150,10 @@ data:
         try:
             conn = get_db_connection()
             with conn.cursor() as cursor:
-                cursor.execute("SELECT numero_cuenta FROM usuarios WHERE id = %s", (usuario_id,))
+                cursor.execute("SELECT nombre FROM usuarios WHERE id = %s", (usuario_id,))
                 user = cursor.fetchone()
                 if user:
-                    file_path = f"/app/pdfs/{user['numero_cuenta']}.pdf"
+                    file_path = f"/app/pdfs/{user['nombre']}.pdf"
                     if os.path.exists(file_path):
                         os.remove(file_path)
                 cursor.execute("DELETE FROM usuarios WHERE id = %s", (usuario_id,))
