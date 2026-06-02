@@ -19,6 +19,23 @@
         .btn-eliminar { background-color: #dc3545; color: white; border: none; padding: 5px 10px; cursor: pointer; border-radius: 3px; margin-left: 5px; font-weight: bold; }
         .btn-excel { background-color: #28a745; color: white; border: none; padding: 10px; cursor: pointer; border-radius: 5px; font-weight: bold; }
         #login-container { text-align: center; margin-top: 100px; }
+        .clickable-row { cursor: pointer; }
+        .clickable-row:hover { background-color: #d6e4ff !important; }
+        .modal-overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 1000; overflow: auto; }
+        .modal-card { background: white; margin: 40px auto; padding: 25px 30px; border-radius: 8px; width: 100%; max-width: 520px; box-shadow: 0 4px 20px rgba(0,0,0,0.3); }
+        .modal-card h2 { margin-top: 0; color: #0056b3; }
+        .perfil-campo { margin-bottom: 12px; }
+        .perfil-campo label { font-weight: bold; display: block; margin-bottom: 3px; color: #444; font-size: 14px; }
+        .perfil-campo .valor { color: #222; }
+        .perfil-campo select, .perfil-campo input { width: 100%; padding: 8px; border: 1px solid #ccc; border-radius: 4px; box-sizing: border-box; }
+        .lista-proyectos { list-style: none; padding: 0; margin: 0; }
+        .lista-proyectos li { display: flex; justify-content: space-between; align-items: center; padding: 6px 8px; border: 1px solid #eee; border-radius: 4px; margin-bottom: 5px; }
+        .btn-cerrar { float: right; background: none; border: none; font-size: 22px; cursor: pointer; color: #888; }
+        .btn-guardar { background-color: #0056b3; color: white; border: none; padding: 10px 15px; border-radius: 5px; cursor: pointer; font-weight: bold; width: 100%; margin-top: 10px; }
+        .btn-mini { background-color: #dc3545; color: white; border: none; padding: 3px 8px; cursor: pointer; border-radius: 3px; }
+        .fila-agregar { display: flex; gap: 5px; margin-top: 8px; }
+        .fila-agregar input { flex: 1; }
+        .fila-agregar button { background-color: #28a745; color: white; border: none; padding: 6px 12px; border-radius: 4px; cursor: pointer; }
     </style>
 
     <script>
@@ -102,6 +119,15 @@
             <tbody></tbody>
         </table>
 
+        <!-- Ventana emergente (modal) con el perfil del alumno -->
+        <div id="modal-perfil" class="modal-overlay" onclick="if(event.target === this) cerrarPerfil()">
+            <div class="modal-card">
+                <button class="btn-cerrar" onclick="cerrarPerfil()">&times;</button>
+                <h2 id="perfil-titulo"></h2>
+                <div id="perfil-cuerpo"></div>
+            </div>
+        </div>
+
         <script>
             function renderizarTabla(datos = datosGlobales) {
                 const filtro = document.getElementById('filtro-semestre').value;
@@ -112,6 +138,10 @@
 
                 usuariosFiltrados.forEach(u => {
                     const tr = document.createElement('tr');
+                    // La fila es clicable para abrir el perfil del alumno
+                    tr.className = 'clickable-row';
+                    tr.title = 'Clic para ver el perfil';
+                    tr.onclick = () => abrirPerfil(u.id);
                     tr.innerHTML = `
                         <td>${u.numero_cuenta}</td>
                         <td>${u.nombre}</td>
@@ -119,10 +149,10 @@
                         <td>${u.correo}</td>
                         <td>${u.carrera}</td>
                         <td>${u.semestre}</td>
-                        <td><a href="http://192.168.49.2.nip.io:30090/ver-pdf/${encodeURIComponent(u.nombre)}" target="_blank">📄 Ver</a></td>
+                        <td><a href="http://192.168.49.2.nip.io:30090/ver-pdf/${encodeURIComponent(u.nombre)}" target="_blank" onclick="event.stopPropagation()">📄 Ver</a></td>
                         <td>
-                            <button class="btn-editar" onclick="editarUsuario('${u.id}')">✏️</button>
-                            <button class="btn-eliminar" onclick="eliminarUsuario('${u.id}')">🗑️</button>
+                            <button class="btn-editar" onclick="event.stopPropagation(); editarUsuario('${u.id}')">✏️</button>
+                            <button class="btn-eliminar" onclick="event.stopPropagation(); eliminarUsuario('${u.id}')">🗑️</button>
                         </td>
                     `;
                     tbody.appendChild(tr);
@@ -169,6 +199,121 @@
                     .then(res => res.json())
                     .then(() => { alert("Registro actualizado"); cargarDatosApi(); });
                 }
+            }
+
+            // === Perfil del alumno (modal) ===
+
+            // OJO: ajusta estas areas a las que use el Centro de Innovacion
+            const AREAS = ["Modelado 3D", "Impresion 3D", "Corte Laser", "Grabado Laser", "Programacion", "Diseño de Videojuegos"];
+
+            function abrirPerfil(id) {
+                const token = sessionStorage.getItem('token_ica');
+                fetch(`${apiUrl}/${id}`, { headers: { 'Authorization': 'Bearer ' + token } })
+                .then(res => res.json())
+                .then(u => {
+                    if (u.status === "Error") { alert("Error: " + u.detalle); return; }
+                    mostrarPerfil(u);
+                })
+                .catch(err => alert("Error al cargar el perfil: " + err.message));
+            }
+
+            function mostrarPerfil(u) {
+                document.getElementById('perfil-titulo').textContent = u.nombre;
+                const ft = u.fecha_termino ? String(u.fecha_termino).substring(0, 10) : '';
+                const fr = u.fecha_registro ? String(u.fecha_registro).replace('T', ' ').substring(0, 16) : 'No disponible';
+                const opcionesArea = AREAS.map(a => `<option value="${a}" ${u.area === a ? 'selected' : ''}>${a}</option>`).join('');
+
+                document.getElementById('perfil-cuerpo').innerHTML = `
+                    <div class="perfil-campo"><label>No. de Cuenta</label><div class="valor">${u.numero_cuenta}</div></div>
+                    <div class="perfil-campo"><label>Carrera</label><div class="valor">${u.carrera}</div></div>
+                    <div class="perfil-campo"><label>Semestre</label><div class="valor">${u.semestre}</div></div>
+                    <div class="perfil-campo"><label>Correo</label><div class="valor">${u.correo}</div></div>
+                    <div class="perfil-campo"><label>Teléfono</label><div class="valor">${u.telefono}</div></div>
+                    <div class="perfil-campo"><label>Fecha de registro</label><div class="valor">${fr}</div></div>
+                    <div class="perfil-campo">
+                        <label>Área</label>
+                        <select id="perfil-area"><option value="">-- Sin asignar --</option>${opcionesArea}</select>
+                    </div>
+                    <div class="perfil-campo">
+                        <label>Fecha de término</label>
+                        <input type="date" id="perfil-fecha-termino" value="${ft}">
+                    </div>
+                    <button class="btn-guardar" onclick="guardarPerfil(${u.id})">Guardar datos</button>
+                    <div class="perfil-campo" style="margin-top: 20px;">
+                        <label>Proyectos</label>
+                        <ul class="lista-proyectos" id="lista-proyectos"></ul>
+                        <div class="fila-agregar">
+                            <input type="text" id="nuevo-proyecto" placeholder="Nombre del proyecto">
+                            <button onclick="agregarProyecto(${u.id})">Agregar</button>
+                        </div>
+                    </div>
+                `;
+                renderProyectos(u.id, u.proyectos || []);
+                document.getElementById('modal-perfil').style.display = 'block';
+            }
+
+            function renderProyectos(usuarioId, proyectos) {
+                const ul = document.getElementById('lista-proyectos');
+                if (!proyectos.length) {
+                    ul.innerHTML = '<li style="color:#888;">Sin proyectos registrados</li>';
+                    return;
+                }
+                ul.innerHTML = proyectos.map(p => `
+                    <li><span>${p.nombre}</span>
+                    <button class="btn-mini" onclick="eliminarProyecto(${p.id}, ${usuarioId})">Quitar</button></li>
+                `).join('');
+            }
+
+            function guardarPerfil(id) {
+                const u = datosGlobales.find(user => user.id == id);
+                const area = document.getElementById('perfil-area').value;
+                const fechaTermino = document.getElementById('perfil-fecha-termino').value;
+                const token = sessionStorage.getItem('token_ica');
+                fetch(`${apiUrl}/${id}`, {
+                    method: 'PUT',
+                    headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + token },
+                    body: JSON.stringify({
+                        numero_cuenta: u.numero_cuenta,
+                        nombre: u.nombre,
+                        telefono: u.telefono,
+                        correo: u.correo,
+                        carrera: u.carrera,
+                        semestre: u.semestre,
+                        area: area,
+                        fecha_termino: fechaTermino
+                    })
+                })
+                .then(res => res.json())
+                .then(() => { alert("Perfil actualizado"); cargarDatosApi(); });
+            }
+
+            function agregarProyecto(usuarioId) {
+                const input = document.getElementById('nuevo-proyecto');
+                const nombre = input.value.trim();
+                if (!nombre) { alert("Escribe el nombre del proyecto"); return; }
+                const token = sessionStorage.getItem('token_ica');
+                fetch(`${apiUrl}/${usuarioId}/proyectos`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + token },
+                    body: JSON.stringify({ nombre: nombre })
+                })
+                .then(res => res.json())
+                .then(() => { abrirPerfil(usuarioId); }); // recargamos el perfil con el proyecto nuevo
+            }
+
+            function eliminarProyecto(proyectoId, usuarioId) {
+                if (!confirm("¿Quitar este proyecto?")) return;
+                const token = sessionStorage.getItem('token_ica');
+                fetch(`http://192.168.49.2.nip.io:30090/proyectos/${proyectoId}`, {
+                    method: 'DELETE',
+                    headers: { 'Authorization': 'Bearer ' + token }
+                })
+                .then(res => res.json())
+                .then(() => { abrirPerfil(usuarioId); });
+            }
+
+            function cerrarPerfil() {
+                document.getElementById('modal-perfil').style.display = 'none';
             }
 
             function descargarExcel() {

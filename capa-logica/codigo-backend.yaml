@@ -16,11 +16,13 @@ data:
     from fastapi.middleware.cors import CORSMiddleware
     from fastapi.responses import FileResponse
     from pydantic import BaseModel
+    from typing import Optional
     from google.oauth2 import id_token
     from google.auth.transport import requests as google_requests
     import pymysql
     import os
     import shutil
+    import time
 
     app = FastAPI(title="API Gestión de Usuarios - ICA (Asegurada)")
 
@@ -47,6 +49,64 @@ data:
             cursorclass=pymysql.cursors.DictCursor
         )
 
+    # --- (Migracion automatica de la base de datos) ---
+    # Agrega las columnas/tablas nuevas sin borrar nada de lo existente.
+    def _columna_existe(cursor, tabla, columna):
+        cursor.execute(
+            "SELECT COUNT(*) AS c FROM information_schema.COLUMNS "
+            "WHERE TABLE_SCHEMA=%s AND TABLE_NAME=%s AND COLUMN_NAME=%s",
+            (DB_NAME, tabla, columna)
+        )
+        return cursor.fetchone()['c'] > 0
+
+    def inicializar_db():
+        conn = get_db_connection()
+        with conn.cursor() as cursor:
+            # Por si fuera una instalacion nueva, aseguramos la tabla usuarios
+            cursor.execute(
+                "CREATE TABLE IF NOT EXISTS usuarios ("
+                "  id INT AUTO_INCREMENT PRIMARY KEY,"
+                "  numero_cuenta VARCHAR(20),"
+                "  nombre VARCHAR(255),"
+                "  telefono VARCHAR(20),"
+                "  correo VARCHAR(255),"
+                "  carrera VARCHAR(50),"
+                "  semestre VARCHAR(20),"
+                "  area VARCHAR(100),"
+                "  fecha_registro DATETIME DEFAULT CURRENT_TIMESTAMP,"
+                "  fecha_termino DATE NULL"
+                ")"
+            )
+            # Para instalaciones existentes: agregamos las columnas nuevas si faltan
+            if not _columna_existe(cursor, "usuarios", "area"):
+                cursor.execute("ALTER TABLE usuarios ADD COLUMN area VARCHAR(100)")
+            if not _columna_existe(cursor, "usuarios", "fecha_registro"):
+                cursor.execute("ALTER TABLE usuarios ADD COLUMN fecha_registro DATETIME DEFAULT CURRENT_TIMESTAMP")
+            if not _columna_existe(cursor, "usuarios", "fecha_termino"):
+                cursor.execute("ALTER TABLE usuarios ADD COLUMN fecha_termino DATE NULL")
+            # Tabla nueva para el historico de proyectos (un alumno -> muchos proyectos)
+            cursor.execute(
+                "CREATE TABLE IF NOT EXISTS proyectos ("
+                "  id INT AUTO_INCREMENT PRIMARY KEY,"
+                "  usuario_id INT NOT NULL,"
+                "  nombre VARCHAR(255) NOT NULL,"
+                "  FOREIGN KEY (usuario_id) REFERENCES usuarios(id) ON DELETE CASCADE"
+                ")"
+            )
+        conn.commit()
+        conn.close()
+
+    @app.on_event("startup")
+    def _migracion_startup():
+        # La BD puede tardar en estar lista; reintentamos unas veces
+        for intento in range(10):
+            try:
+                inicializar_db()
+                return
+            except Exception as e:
+                print(f"Esperando a la base de datos... ({intento+1}/10): {e}")
+                time.sleep(3)
+
     # --- (Validación JWT) ---
     def verificar_token(authorization: str = Header(None)):
         if not authorization or not authorization.startswith("Bearer "):
@@ -72,6 +132,11 @@ data:
         correo: str
         carrera: str
         semestre: str
+        area: Optional[str] = None
+        fecha_termino: Optional[str] = None
+
+    class ProyectoNuevo(BaseModel):
+        nombre: str
 
     # Agregamos "Depends(verificar_token)" para proteger las rutas vitales
 
@@ -87,6 +152,24 @@ data:
         except Exception as e:
             return {"status": "Error", "detalle": str(e)}
 
+    @app.get("/usuarios/{usuario_id}")
+    def obtener_perfil(usuario_id: int, user_info: dict = Depends(verificar_token)):
+        # Devuelve el perfil del alumno junto con su historico de proyectos
+        try:
+            conn = get_db_connection()
+            with conn.cursor() as cursor:
+                cursor.execute("SELECT * FROM usuarios WHERE id = %s", (usuario_id,))
+                usuario = cursor.fetchone()
+                if not usuario:
+                    conn.close()
+                    return {"status": "Error", "detalle": "Alumno no encontrado"}
+                cursor.execute("SELECT id, nombre FROM proyectos WHERE usuario_id = %s ORDER BY id", (usuario_id,))
+                usuario["proyectos"] = cursor.fetchall()
+            conn.close()
+            return usuario
+        except Exception as e:
+            return {"status": "Error", "detalle": str(e)}
+
     @app.post("/usuarios")
     def crear_usuario(
         numero_cuenta: str = Form(...),
@@ -99,6 +182,7 @@ data:
         user_info: dict = Depends(verificar_token) # <--- Protegido
     ):
         try:
+            # Guardamos el PDF con el nombre de la persona en lugar del numero de cuenta
             file_path = f"/app/pdfs/{nombre}.pdf"
             with open(file_path, "wb") as buffer:
                 shutil.copyfileobj(historial_pdf.file, buffer)
@@ -117,6 +201,7 @@ data:
     @app.get("/ver-pdf/{nombre}")
     def ver_pdf(nombre: str):
         # Esta la dejamos pública porque el navegador la abre directo en otra pestaña
+        # Ahora los PDFs se guardan con el nombre de la persona
         file_path = f"/app/pdfs/{nombre}.pdf"
         if os.path.exists(file_path):
             return FileResponse(file_path, media_type="application/pdf")
@@ -136,8 +221,10 @@ data:
                     if os.path.exists(ruta_anterior):
                         os.rename(ruta_anterior, ruta_nueva)
 
-                sql = "UPDATE usuarios SET numero_cuenta=%s, nombre=%s, telefono=%s, correo=%s, carrera=%s, semestre=%s WHERE id=%s"
-                val = (usuario.numero_cuenta, usuario.nombre, usuario.telefono, usuario.correo, usuario.carrera, usuario.semestre, usuario_id)
+                sql = "UPDATE usuarios SET numero_cuenta=%s, nombre=%s, telefono=%s, correo=%s, carrera=%s, semestre=%s, area=%s, fecha_termino=%s WHERE id=%s"
+                # fecha_termino vacia la guardamos como NULL
+                fecha_termino = usuario.fecha_termino if usuario.fecha_termino else None
+                val = (usuario.numero_cuenta, usuario.nombre, usuario.telefono, usuario.correo, usuario.carrera, usuario.semestre, usuario.area, fecha_termino, usuario_id)
                 cursor.execute(sql, val)
             conn.commit()
             conn.close()
@@ -160,5 +247,29 @@ data:
             conn.commit()
             conn.close()
             return {"status": "Éxito", "mensaje": "Usuario y PDF eliminados."}
+        except Exception as e:
+            return {"status": "Error", "detalle": str(e)}
+
+    @app.post("/usuarios/{usuario_id}/proyectos")
+    def agregar_proyecto(usuario_id: int, proyecto: ProyectoNuevo, user_info: dict = Depends(verificar_token)): # <--- Protegido
+        try:
+            conn = get_db_connection()
+            with conn.cursor() as cursor:
+                cursor.execute("INSERT INTO proyectos (usuario_id, nombre) VALUES (%s, %s)", (usuario_id, proyecto.nombre))
+            conn.commit()
+            conn.close()
+            return {"status": "Éxito", "mensaje": "Proyecto agregado."}
+        except Exception as e:
+            return {"status": "Error", "detalle": str(e)}
+
+    @app.delete("/proyectos/{proyecto_id}")
+    def eliminar_proyecto(proyecto_id: int, user_info: dict = Depends(verificar_token)): # <--- Protegido
+        try:
+            conn = get_db_connection()
+            with conn.cursor() as cursor:
+                cursor.execute("DELETE FROM proyectos WHERE id = %s", (proyecto_id,))
+            conn.commit()
+            conn.close()
+            return {"status": "Éxito", "mensaje": "Proyecto eliminado."}
         except Exception as e:
             return {"status": "Error", "detalle": str(e)}
