@@ -202,9 +202,10 @@
             }
 
             // === Perfil del alumno (modal) ===
-
-            // OJO: ajusta estas areas a las que use el Centro de Innovacion
-            const AREAS = ["Modelado 3D", "Impresion 3D", "Corte Laser", "Grabado Laser", "Programacion", "Diseño de Videojuegos"];
+            const AREAS = ["Modelado 3D", "Impresión 3D", "Corte Láser", "Programación", "Diseño de Videojuegos"];
+            // Nombre completo de cada carrera para mostrarlo en el perfil
+            const CARRERAS = { "ICO": "Ingeniería en Computación", "IME": "Ingeniería Mecánica Eléctrica", "IIND": "Ingeniería Industrial", "CIVIL": "Ingeniería Civil" };
+            const SEMANAS = ["1ra semana", "2da semana", "3ra semana"];
 
             function abrirPerfil(id) {
                 const token = sessionStorage.getItem('token_ica');
@@ -219,28 +220,27 @@
 
             function mostrarPerfil(u) {
                 document.getElementById('perfil-titulo').textContent = u.nombre;
-                const ft = u.fecha_termino ? String(u.fecha_termino).substring(0, 10) : '';
-                const fr = u.fecha_registro ? String(u.fecha_registro).replace('T', ' ').substring(0, 16) : 'No disponible';
+                const carreraCompleta = CARRERAS[u.carrera] || u.carrera;
                 const opcionesArea = AREAS.map(a => `<option value="${a}" ${u.area === a ? 'selected' : ''}>${a}</option>`).join('');
+                const opcionesSemana = SEMANAS.map(s => `<option value="${s}" ${u.semana_registro === s ? 'selected' : ''}>${s}</option>`).join('');
 
                 document.getElementById('perfil-cuerpo').innerHTML = `
                     <div class="perfil-campo"><label>No. de Cuenta</label><div class="valor">${u.numero_cuenta}</div></div>
-                    <div class="perfil-campo"><label>Carrera</label><div class="valor">${u.carrera}</div></div>
+                    <div class="perfil-campo"><label>Carrera</label><div class="valor">${carreraCompleta}</div></div>
                     <div class="perfil-campo"><label>Semestre</label><div class="valor">${u.semestre}</div></div>
                     <div class="perfil-campo"><label>Correo</label><div class="valor">${u.correo}</div></div>
                     <div class="perfil-campo"><label>Teléfono</label><div class="valor">${u.telefono}</div></div>
-                    <div class="perfil-campo"><label>Fecha de registro</label><div class="valor">${fr}</div></div>
+                    <div class="perfil-campo">
+                        <label>Semana de registro</label>
+                        <select id="perfil-semana"><option value="">-- Sin asignar --</option>${opcionesSemana}</select>
+                    </div>
                     <div class="perfil-campo">
                         <label>Área</label>
                         <select id="perfil-area"><option value="">-- Sin asignar --</option>${opcionesArea}</select>
                     </div>
-                    <div class="perfil-campo">
-                        <label>Fecha de término</label>
-                        <input type="date" id="perfil-fecha-termino" value="${ft}">
-                    </div>
-                    <button class="btn-guardar" onclick="guardarPerfil(${u.id})">Guardar datos</button>
+                    <button class="btn-guardar" onclick="guardarPerfil(${u.id})">Guardar datos del perfil</button>
                     <div class="perfil-campo" style="margin-top: 20px;">
-                        <label>Proyectos</label>
+                        <label>Histórico de proyectos</label>
                         <ul class="lista-proyectos" id="lista-proyectos"></ul>
                         <div class="fila-agregar">
                             <input type="text" id="nuevo-proyecto" placeholder="Nombre del proyecto">
@@ -267,7 +267,7 @@
             function guardarPerfil(id) {
                 const u = datosGlobales.find(user => user.id == id);
                 const area = document.getElementById('perfil-area').value;
-                const fechaTermino = document.getElementById('perfil-fecha-termino').value;
+                const semanaRegistro = document.getElementById('perfil-semana').value;
                 const token = sessionStorage.getItem('token_ica');
                 fetch(`${apiUrl}/${id}`, {
                     method: 'PUT',
@@ -280,7 +280,7 @@
                         carrera: u.carrera,
                         semestre: u.semestre,
                         area: area,
-                        fecha_termino: fechaTermino
+                        semana_registro: semanaRegistro
                     })
                 })
                 .then(res => res.json())

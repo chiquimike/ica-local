@@ -73,17 +73,14 @@ data:
                 "  carrera VARCHAR(50),"
                 "  semestre VARCHAR(20),"
                 "  area VARCHAR(100),"
-                "  fecha_registro DATETIME DEFAULT CURRENT_TIMESTAMP,"
-                "  fecha_termino DATE NULL"
+                "  semana_registro VARCHAR(20)"
                 ")"
             )
             # Para instalaciones existentes: agregamos las columnas nuevas si faltan
             if not _columna_existe(cursor, "usuarios", "area"):
                 cursor.execute("ALTER TABLE usuarios ADD COLUMN area VARCHAR(100)")
-            if not _columna_existe(cursor, "usuarios", "fecha_registro"):
-                cursor.execute("ALTER TABLE usuarios ADD COLUMN fecha_registro DATETIME DEFAULT CURRENT_TIMESTAMP")
-            if not _columna_existe(cursor, "usuarios", "fecha_termino"):
-                cursor.execute("ALTER TABLE usuarios ADD COLUMN fecha_termino DATE NULL")
+            if not _columna_existe(cursor, "usuarios", "semana_registro"):
+                cursor.execute("ALTER TABLE usuarios ADD COLUMN semana_registro VARCHAR(20)")
             # Tabla nueva para el historico de proyectos (un alumno -> muchos proyectos)
             cursor.execute(
                 "CREATE TABLE IF NOT EXISTS proyectos ("
@@ -133,7 +130,7 @@ data:
         carrera: str
         semestre: str
         area: Optional[str] = None
-        fecha_termino: Optional[str] = None
+        semana_registro: Optional[str] = None
 
     class ProyectoNuevo(BaseModel):
         nombre: str
@@ -221,10 +218,8 @@ data:
                     if os.path.exists(ruta_anterior):
                         os.rename(ruta_anterior, ruta_nueva)
 
-                sql = "UPDATE usuarios SET numero_cuenta=%s, nombre=%s, telefono=%s, correo=%s, carrera=%s, semestre=%s, area=%s, fecha_termino=%s WHERE id=%s"
-                # fecha_termino vacia la guardamos como NULL
-                fecha_termino = usuario.fecha_termino if usuario.fecha_termino else None
-                val = (usuario.numero_cuenta, usuario.nombre, usuario.telefono, usuario.correo, usuario.carrera, usuario.semestre, usuario.area, fecha_termino, usuario_id)
+                sql = "UPDATE usuarios SET numero_cuenta=%s, nombre=%s, telefono=%s, correo=%s, carrera=%s, semestre=%s, area=%s, semana_registro=%s WHERE id=%s"
+                val = (usuario.numero_cuenta, usuario.nombre, usuario.telefono, usuario.correo, usuario.carrera, usuario.semestre, usuario.area, usuario.semana_registro, usuario_id)
                 cursor.execute(sql, val)
             conn.commit()
             conn.close()
