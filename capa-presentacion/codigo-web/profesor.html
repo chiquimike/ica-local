@@ -18,6 +18,7 @@
         .btn-editar { background-color: #ffc107; color: black; border: none; padding: 5px 10px; cursor: pointer; border-radius: 3px; font-weight: bold; }
         .btn-eliminar { background-color: #dc3545; color: white; border: none; padding: 5px 10px; cursor: pointer; border-radius: 3px; margin-left: 5px; font-weight: bold; }
         .btn-excel { background-color: #28a745; color: white; border: none; padding: 10px; cursor: pointer; border-radius: 5px; font-weight: bold; }
+        .btn-pdf { background-color: #0056b3; color: white; border: none; padding: 10px; cursor: pointer; border-radius: 5px; font-weight: bold; margin-left: 8px; }
         #login-container { text-align: center; margin-top: 100px; }
         .clickable-row { cursor: pointer; }
         .clickable-row:hover { background-color: #d6e4ff !important; }
@@ -61,11 +62,13 @@
                 method: 'GET',
                 headers: { 'Authorization': 'Bearer ' + token }
             })
-            .then(res => {
-                if (res.status === 401) throw new Error("Sesión expirada o no autorizada");
-                return res.json();
+            .then(async res => {
+                const data = await res.json();
+                if (!res.ok) throw new Error(data.detail || data.detalle || "No autorizado");
+                return data;
             })
             .then(data => {
+                if (!Array.isArray(data)) throw new Error(data.detail || data.detalle || "Respuesta inesperada del servidor");
                 datosGlobales = data;
                 renderizarTabla(data);
             })
@@ -106,7 +109,10 @@
                     <option value="2026-I">2026-I</option>
                 </select>
             </div>
-            <button class="btn-excel" onclick="descargarExcel()">📥 Descargar Excel</button>
+            <div>
+                <button class="btn-excel" onclick="descargarExcel()">📥 Descargar Excel</button>
+                <button class="btn-pdf" onclick="descargarPdfs()">📄 Descargar PDFs</button>
+            </div>
         </div>
 
         <table id="tabla-usuarios">
@@ -149,7 +155,7 @@
                         <td>${u.correo}</td>
                         <td>${u.carrera}</td>
                         <td>${u.semestre}</td>
-                        <td><a href="http://192.168.49.2.nip.io:30090/ver-pdf/${encodeURIComponent(u.nombre)}" target="_blank" onclick="event.stopPropagation()">📄 Ver</a></td>
+                        <td><a href="#" onclick="event.stopPropagation(); verPdf(${u.id}); return false;">📄 Ver</a></td>
                         <td>
                             <button class="btn-editar" onclick="event.stopPropagation(); editarUsuario('${u.id}')">✏️</button>
                             <button class="btn-eliminar" onclick="event.stopPropagation(); eliminarUsuario('${u.id}')">🗑️</button>
@@ -201,8 +207,8 @@
                 }
             }
 
-            // === Perfil del alumno (modal) ===
-            const AREAS = ["Modelado 3D", "Impresión 3D", "Corte Láser", "Programación", "Diseño de Videojuegos"];
+            // Perfil del alumno 
+            const AREAS = ["Modelado 3D", "Impresión 3D", "Corte Láser", "Grabado Láser", "Programación", "Diseño de Videojuegos"];
             // Nombre completo de cada carrera para mostrarlo en el perfil
             const CARRERAS = { "ICO": "Ingeniería en Computación", "IME": "Ingeniería Mecánica Eléctrica", "IIND": "Ingeniería Industrial", "CIVIL": "Ingeniería Civil" };
             const SEMANAS = ["1ra semana", "2da semana", "3ra semana"];
@@ -316,6 +322,26 @@
                 document.getElementById('modal-perfil').style.display = 'none';
             }
 
+            // Abre el historial PDF (endpoint protegido) enviamos el token y mostrandolo via blob
+            function verPdf(id) {
+                const u = datosGlobales.find(user => user.id == id);
+                if (!u) return;
+                const token = sessionStorage.getItem('token_ica');
+                fetch(`http://192.168.49.2.nip.io:30090/ver-pdf/${encodeURIComponent(u.nombre)}`, {
+                    headers: { 'Authorization': 'Bearer ' + token }
+                })
+                .then(res => {
+                    if (!res.ok) throw new Error("No se pudo abrir el historial PDF");
+                    return res.blob();
+                })
+                .then(blob => {
+                    const url = window.URL.createObjectURL(blob);
+                    window.open(url, '_blank');
+                    setTimeout(() => window.URL.revokeObjectURL(url), 60000);
+                })
+                .catch(err => alert("Error: " + err.message));
+            }
+
             function descargarExcel() {
                 const filtro = document.getElementById('filtro-semestre').value;
                 const datosAExportar = (filtro === "todos") ? datosGlobales : datosGlobales.filter(u => u.semestre === filtro);
@@ -329,6 +355,27 @@
                 a.href = url;
                 a.download = `Alumnos_ICA_${filtro}.csv`;
                 a.click();
+            }
+
+            function descargarPdfs() {
+                const filtro = document.getElementById('filtro-semestre').value;
+                const token = sessionStorage.getItem('token_ica');
+                fetch(`http://192.168.49.2.nip.io:30090/descargar-pdfs?semestre=${encodeURIComponent(filtro)}`, {
+                    headers: { 'Authorization': 'Bearer ' + token }
+                })
+                .then(res => {
+                    if (!res.ok) throw new Error("No se pudieron descargar los PDFs");
+                    return res.blob();
+                })
+                .then(blob => {
+                    const url = window.URL.createObjectURL(blob);
+                    const a = document.createElement("a");
+                    a.href = url;
+                    a.download = `Historiales_ICA_${filtro}.zip`;
+                    a.click();
+                    window.URL.revokeObjectURL(url);
+                })
+                .catch(err => alert("Error: " + err.message));
             }
 
         </script>

@@ -119,13 +119,13 @@
                     headers: { 'Authorization': 'Bearer ' + token },
                     body: formData
                 })
-                .then(res => res.json())
-                .then(data => {
-                    if(data.status === "Éxito") { 
-                        alert("¡Registro guardado!"); 
-                        document.getElementById('form-registro').reset(); 
+                .then(async res => {
+                    const data = await res.json();
+                    if(data.status === "Éxito") {
+                        alert("¡Registro guardado!");
+                        document.getElementById('form-registro').reset();
                     } else {
-                        alert("Error: " + data.detalle);
+                        alert("Error: " + (data.detail || data.detalle || "No se pudo guardar el registro"));
                     }
                 })
                 .catch(err => alert("Fallo al conectar con el servidor."));

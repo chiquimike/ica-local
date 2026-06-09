@@ -14,7 +14,7 @@ data:
   main.py: |
     from fastapi import FastAPI, File, UploadFile, Form, Depends, HTTPException, Header
     from fastapi.middleware.cors import CORSMiddleware
-    from fastapi.responses import FileResponse
+    from fastapi.responses import FileResponse, StreamingResponse
     from pydantic import BaseModel
     from typing import Optional
     from google.oauth2 import id_token
@@ -23,12 +23,20 @@ data:
     import os
     import shutil
     import time
+    import io
+    import zipfile
 
     app = FastAPI(title="API Gestión de Usuarios - ICA (Asegurada)")
 
+    # Origenes permitidos para CORS (el frontend). Configurable por variable de entorno.
+    ALLOWED_ORIGINS = os.getenv(
+        "ALLOWED_ORIGINS",
+        "http://192.168.49.2.nip.io:30080,http://192.168.0.254:30080"
+    ).split(",")
+
     app.add_middleware(
         CORSMiddleware,
-        allow_origins=["*"],
+        allow_origins=ALLOWED_ORIGINS,
         allow_credentials=True,
         allow_methods=["*"],
         allow_headers=["*"],
@@ -36,12 +44,22 @@ data:
 
     DB_HOST = os.getenv("DB_HOST", "mysql-nodeport")
     DB_USER = os.getenv("DB_USER", "root")
-    DB_PASS = os.getenv("DB_PASS", "1ca_01")
+    DB_PASS = os.getenv("DB_PASS", "")
     DB_NAME = os.getenv("DB_NAME", "gestion_usuarios")
-    
-    GOOGLE_CLIENT_ID = "374163159167-hj3aofouk0mae2ksk0qq5agevdlengfj.apps.googleusercontent.com" 
+
+    GOOGLE_CLIENT_ID = "374163159167-hj3aofouk0mae2ksk0qq5agevdlengfj.apps.googleusercontent.com"
+    # Solo se permiten cuentas de este dominio institucional
+    DOMINIO_PERMITIDO = os.getenv("DOMINIO_PERMITIDO", "aragon.unam.mx")
+    # Correos admin permitidos aunque no sean del dominio (separados por coma)
+    CORREOS_ADMIN = [c.strip().lower() for c in os.getenv("CORREOS_ADMIN", "").split(",") if c.strip()]
 
     os.makedirs("/app/pdfs", exist_ok=True)
+
+    def ruta_pdf(nombre):
+        # Sanitiza el nombre para evitar path traversal (ej. "../../etc/algo").
+        # Nos quedamos solo con el nombre de archivo base, sin separadores de ruta.
+        seguro = os.path.basename(str(nombre)).replace("\\", "").strip()
+        return f"/app/pdfs/{seguro}.pdf"
 
     def get_db_connection():
         return pymysql.connect(
@@ -113,14 +131,16 @@ data:
         try:
             # Google verifica criptográficamente que el token no sea falso
             idinfo = id_token.verify_oauth2_token(token, google_requests.Request(), GOOGLE_CLIENT_ID)
-            
-            # ¡Para más seguridad! Wuuuu Descomenta esto para exigir correo UNAM:
-            # if idinfo.get('hd') != 'aragon.unam.mx':
-            #     raise HTTPException(status_code=403, detail="Solo correos @aragon.unam.mx autorizados")
-            
-            return idinfo
         except ValueError:
             raise HTTPException(status_code=401, detail="Token inválido o expirado")
+
+        # Acceso permitido a cuentas del dominio institucional o a admins de la lista blanca
+        correo = idinfo.get("email", "").lower()
+        autorizado = correo.endswith("@" + DOMINIO_PERMITIDO) or correo in CORREOS_ADMIN
+        if not idinfo.get("email_verified") or not autorizado:
+            raise HTTPException(status_code=403, detail=f"Cuenta no autorizada: {correo or 'sin correo'}")
+
+        return idinfo
 
     class UsuarioNuevo(BaseModel):
         numero_cuenta: str
@@ -147,7 +167,8 @@ data:
             conn.close()
             return usuarios
         except Exception as e:
-            return {"status": "Error", "detalle": str(e)}
+            print(f"[ERROR] {e}")
+            return {"status": "Error", "detalle": "Ocurrió un error procesando la solicitud."}
 
     @app.get("/usuarios/{usuario_id}")
     def obtener_perfil(usuario_id: int, user_info: dict = Depends(verificar_token)):
@@ -165,7 +186,8 @@ data:
             conn.close()
             return usuario
         except Exception as e:
-            return {"status": "Error", "detalle": str(e)}
+            print(f"[ERROR] {e}")
+            return {"status": "Error", "detalle": "Ocurrió un error procesando la solicitud."}
 
     @app.post("/usuarios")
     def crear_usuario(
@@ -179,8 +201,8 @@ data:
         user_info: dict = Depends(verificar_token) # <--- Protegido
     ):
         try:
-            # Guardamos el PDF con el nombre de la persona en lugar del numero de cuenta
-            file_path = f"/app/pdfs/{nombre}.pdf"
+            # Guardamos el PDF con el nombre de la persona (ruta sanitizada)
+            file_path = ruta_pdf(nombre)
             with open(file_path, "wb") as buffer:
                 shutil.copyfileobj(historial_pdf.file, buffer)
 
@@ -193,13 +215,13 @@ data:
             conn.close()
             return {"status": "Éxito", "mensaje": "Usuario y PDF guardados correctamente."}
         except Exception as e:
-            return {"status": "Error", "detalle": str(e)}
+            print(f"[ERROR] {e}")
+            return {"status": "Error", "detalle": "Ocurrió un error procesando la solicitud."}
 
     @app.get("/ver-pdf/{nombre}")
-    def ver_pdf(nombre: str):
-        # Esta la dejamos pública porque el navegador la abre directo en otra pestaña
-        # Ahora los PDFs se guardan con el nombre de la persona
-        file_path = f"/app/pdfs/{nombre}.pdf"
+    def ver_pdf(nombre: str, user_info: dict = Depends(verificar_token)): # <--- Protegido
+        # Ahora requiere token; el frontend lo abre via fetch + blob (no enlace publico)
+        file_path = ruta_pdf(nombre)
         if os.path.exists(file_path):
             return FileResponse(file_path, media_type="application/pdf")
         return {"Error": "Archivo no encontrado"}
@@ -213,8 +235,8 @@ data:
                 cursor.execute("SELECT nombre FROM usuarios WHERE id = %s", (usuario_id,))
                 anterior = cursor.fetchone()
                 if anterior and anterior['nombre'] != usuario.nombre:
-                    ruta_anterior = f"/app/pdfs/{anterior['nombre']}.pdf"
-                    ruta_nueva = f"/app/pdfs/{usuario.nombre}.pdf"
+                    ruta_anterior = ruta_pdf(anterior['nombre'])
+                    ruta_nueva = ruta_pdf(usuario.nombre)
                     if os.path.exists(ruta_anterior):
                         os.rename(ruta_anterior, ruta_nueva)
 
@@ -225,7 +247,8 @@ data:
             conn.close()
             return {"status": "Éxito", "mensaje": "Usuario actualizado."}
         except Exception as e:
-            return {"status": "Error", "detalle": str(e)}
+            print(f"[ERROR] {e}")
+            return {"status": "Error", "detalle": "Ocurrió un error procesando la solicitud."}
 
     @app.delete("/usuarios/{usuario_id}")
     def eliminar_usuario(usuario_id: int, user_info: dict = Depends(verificar_token)): # <--- Protegido
@@ -235,7 +258,7 @@ data:
                 cursor.execute("SELECT nombre FROM usuarios WHERE id = %s", (usuario_id,))
                 user = cursor.fetchone()
                 if user:
-                    file_path = f"/app/pdfs/{user['nombre']}.pdf"
+                    file_path = ruta_pdf(user['nombre'])
                     if os.path.exists(file_path):
                         os.remove(file_path)
                 cursor.execute("DELETE FROM usuarios WHERE id = %s", (usuario_id,))
@@ -243,7 +266,8 @@ data:
             conn.close()
             return {"status": "Éxito", "mensaje": "Usuario y PDF eliminados."}
         except Exception as e:
-            return {"status": "Error", "detalle": str(e)}
+            print(f"[ERROR] {e}")
+            return {"status": "Error", "detalle": "Ocurrió un error procesando la solicitud."}
 
     @app.post("/usuarios/{usuario_id}/proyectos")
     def agregar_proyecto(usuario_id: int, proyecto: ProyectoNuevo, user_info: dict = Depends(verificar_token)): # <--- Protegido
@@ -255,7 +279,8 @@ data:
             conn.close()
             return {"status": "Éxito", "mensaje": "Proyecto agregado."}
         except Exception as e:
-            return {"status": "Error", "detalle": str(e)}
+            print(f"[ERROR] {e}")
+            return {"status": "Error", "detalle": "Ocurrió un error procesando la solicitud."}
 
     @app.delete("/proyectos/{proyecto_id}")
     def eliminar_proyecto(proyecto_id: int, user_info: dict = Depends(verificar_token)): # <--- Protegido
@@ -267,4 +292,43 @@ data:
             conn.close()
             return {"status": "Éxito", "mensaje": "Proyecto eliminado."}
         except Exception as e:
-            return {"status": "Error", "detalle": str(e)}
+            print(f"[ERROR] {e}")
+            return {"status": "Error", "detalle": "Ocurrió un error procesando la solicitud."}
+
+    @app.get("/descargar-pdfs")
+    def descargar_pdfs(semestre: str = "todos", user_info: dict = Depends(verificar_token)): # <--- Protegido
+        # Empaqueta en un ZIP todos los historiales PDF (cada uno con el nombre del alumno).
+        # Respeta el filtro de semestre, igual que la descarga de Excel.
+        try:
+            conn = get_db_connection()
+            with conn.cursor() as cursor:
+                if semestre and semestre != "todos":
+                    cursor.execute("SELECT nombre FROM usuarios WHERE semestre = %s", (semestre,))
+                else:
+                    cursor.execute("SELECT nombre FROM usuarios")
+                alumnos = cursor.fetchall()
+            conn.close()
+
+            buffer = io.BytesIO()
+            with zipfile.ZipFile(buffer, "w", zipfile.ZIP_DEFLATED) as zf:
+                usados = set()
+                for a in alumnos:
+                    ruta = ruta_pdf(a['nombre'])
+                    if os.path.exists(ruta):
+                        nombre_zip = f"{a['nombre']}.pdf"
+                        # Por si dos alumnos tienen el mismo nombre, evitamos pisar archivos dentro del zip
+                        contador = 1
+                        while nombre_zip in usados:
+                            contador += 1
+                            nombre_zip = f"{a['nombre']} ({contador}).pdf"
+                        usados.add(nombre_zip)
+                        zf.write(ruta, nombre_zip)
+            buffer.seek(0)
+            return StreamingResponse(
+                buffer,
+                media_type="application/zip",
+                headers={"Content-Disposition": f"attachment; filename=Historiales_ICA_{semestre}.zip"}
+            )
+        except Exception as e:
+            print(f"[ERROR] {e}")
+            return {"status": "Error", "detalle": "Ocurrió un error procesando la solicitud."}

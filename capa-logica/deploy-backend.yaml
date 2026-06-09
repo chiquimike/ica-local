@@ -33,6 +33,18 @@ spec:
         env:
         - name: DB_HOST
           value: "mysql-nodeport"
+        # La contraseña se inyecta desde el Secret, no se quema en el codigo
+        - name: DB_PASS
+          valueFrom:
+            secretKeyRef:
+              name: mysql-secret
+              key: mysql-root-password
+        # Aqui podemos poner correos que pueden entrar aunque no sean @aragon.unam.mx 
+        # No es buena practica, pero igual por si se necesita alguna vez
+        # Van separados por coma, si es más de uno
+        # Ej: "micorreo@gmail.com,otrocorreo@gmail.com"
+        - name: CORREOS_ADMIN
+          value: ""
         resources:
           requests:
             memory: "64Mi"

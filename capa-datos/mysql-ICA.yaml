@@ -11,11 +11,12 @@ kind: Service
 metadata:
   name: mysql-nodeport
 spec:
-  type: NodePort
+  # ClusterIP: la BD solo es accesible dentro del cluster (por el backend).
+  # Para administrarla con Workbench, usar: kubectl port-forward svc/mysql-nodeport 3306:3306
+  type: ClusterIP
   ports:
     - port: 3306
       targetPort: 3306
-      nodePort: 30306
   selector:
     app: mysql
 ---
