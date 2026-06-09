@@ -4,5 +4,6 @@ kind: Kustomization
 resources:
   - capa-datos/mysql-ICA.yaml
   - capa-logica/codigo-backend.yaml
+  - capa-logica/pvc-backend.yaml
   - capa-logica/deploy-backend.yaml
   - capa-presentacion/

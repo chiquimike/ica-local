@@ -1,14 +1,3 @@
-apiVersion: v1
-kind: PersistentVolumeClaim
-metadata:
-  name: backend-pdf-pvc
-spec:
-  accessModes:
-    - ReadWriteOnce
-  resources:
-    requests:
-      storage: 2Gi
----
 apiVersion: apps/v1
 kind: Deployment
 metadata:
@@ -33,16 +22,14 @@ spec:
         env:
         - name: DB_HOST
           value: "mysql-nodeport"
-        # La contraseña se inyecta desde el Secret, no se quema en el codigo
+        # La contraseña se inyecta desde el Secret, no se quema en el código
         - name: DB_PASS
           valueFrom:
             secretKeyRef:
               name: mysql-secret
               key: mysql-root-password
-        # Aqui podemos poner correos que pueden entrar aunque no sean @aragon.unam.mx 
-        # No es buena practica, pero igual por si se necesita alguna vez
-        # Van separados por coma, si es más de uno
-        # Ej: "micorreo@gmail.com,otrocorreo@gmail.com"
+        # Correos admin que pueden entrar aunque no sean @aragon.unam.mx (separados por coma)
+        # Ej: "tucorreo@gmail.com,otroadmin@gmail.com"
         - name: CORREOS_ADMIN
           value: ""
         resources:
