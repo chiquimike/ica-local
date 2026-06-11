@@ -1,0 +1,13 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+
+# Entorno SERVER (K3s, HP ProLiant). Parte de la base y solo sobreescribe
+# la URL del backend en el frontend (config.js) via merge
+resources:
+  - ../../base
+
+configMapGenerator:
+  - name: frontend-codigo
+    behavior: merge
+    files:
+      - config.js

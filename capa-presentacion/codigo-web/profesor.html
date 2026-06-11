@@ -39,8 +39,10 @@
         .fila-agregar button { background-color: #28a745; color: white; border: none; padding: 6px 12px; border-radius: 4px; cursor: pointer; }
     </style>
 
+    <!-- URL del backend segun el entorno (la define config.js, inyectado por Kustomize) -->
+    <script src="config.js"></script>
     <script>
-        const apiUrl = 'http://192.168.49.2.nip.io:30090/usuarios';
+        const apiUrl = window.API_BASE + '/usuarios';
         let datosGlobales = [];
 
         function handleCredentialResponse(response) {
@@ -207,8 +209,10 @@
                 }
             }
 
-            // Perfil del alumno 
-            const AREAS = ["Modelado 3D", "Impresión 3D", "Corte Láser", "Grabado Láser", "Programación", "Diseño de Videojuegos"];
+            // === Perfil del alumno (modal) ===
+
+            // OJO: ajusta estas areas a las que use el Centro de Innovacion
+            const AREAS = ["Desarrollo de Software", "Redes y Telecomunicaciones", "Bases de Datos", "Soporte Técnico", "Diseño Web", "Administración de Sistemas"];
             // Nombre completo de cada carrera para mostrarlo en el perfil
             const CARRERAS = { "ICO": "Ingeniería en Computación", "IME": "Ingeniería Mecánica Eléctrica", "IIND": "Ingeniería Industrial", "CIVIL": "Ingeniería Civil" };
             const SEMANAS = ["1ra semana", "2da semana", "3ra semana"];
@@ -244,7 +248,7 @@
                         <label>Área</label>
                         <select id="perfil-area"><option value="">-- Sin asignar --</option>${opcionesArea}</select>
                     </div>
-                    <button class="btn-guardar" onclick="guardarPerfil(${u.id})">Guardar datos del perfil</button>
+                    <button class="btn-guardar" onclick="guardarPerfil(${u.id})">💾 Guardar datos del perfil</button>
                     <div class="perfil-campo" style="margin-top: 20px;">
                         <label>Histórico de proyectos</label>
                         <ul class="lista-proyectos" id="lista-proyectos"></ul>
@@ -310,7 +314,7 @@
             function eliminarProyecto(proyectoId, usuarioId) {
                 if (!confirm("¿Quitar este proyecto?")) return;
                 const token = sessionStorage.getItem('token_ica');
-                fetch(`http://192.168.49.2.nip.io:30090/proyectos/${proyectoId}`, {
+                fetch(`${window.API_BASE}/proyectos/${proyectoId}`, {
                     method: 'DELETE',
                     headers: { 'Authorization': 'Bearer ' + token }
                 })
@@ -322,12 +326,12 @@
                 document.getElementById('modal-perfil').style.display = 'none';
             }
 
-            // Abre el historial PDF (endpoint protegido) enviamos el token y mostrandolo via blob
+            // Abre el historial PDF (endpoint protegido) enviando el token y mostrandolo via blob
             function verPdf(id) {
                 const u = datosGlobales.find(user => user.id == id);
                 if (!u) return;
                 const token = sessionStorage.getItem('token_ica');
-                fetch(`http://192.168.49.2.nip.io:30090/ver-pdf/${encodeURIComponent(u.nombre)}`, {
+                fetch(`${window.API_BASE}/ver-pdf/${encodeURIComponent(u.nombre)}`, {
                     headers: { 'Authorization': 'Bearer ' + token }
                 })
                 .then(res => {
@@ -360,7 +364,7 @@
             function descargarPdfs() {
                 const filtro = document.getElementById('filtro-semestre').value;
                 const token = sessionStorage.getItem('token_ica');
-                fetch(`http://192.168.49.2.nip.io:30090/descargar-pdfs?semestre=${encodeURIComponent(filtro)}`, {
+                fetch(`${window.API_BASE}/descargar-pdfs?semestre=${encodeURIComponent(filtro)}`, {
                     headers: { 'Authorization': 'Bearer ' + token }
                 })
                 .then(res => {

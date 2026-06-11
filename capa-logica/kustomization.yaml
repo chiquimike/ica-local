@@ -1,0 +1,10 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+
+# Kustomization SOLO del backend
+# Es el path que reconcilia la Application de Argo CD en la Fase 1 (prueba)
+# para validar el flujo GitOps sin que toquemos el resto del cluster todavia
+resources:
+  - codigo-backend.yaml
+  - pvc-backend.yaml
+  - deploy-backend.yaml

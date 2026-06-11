@@ -1,0 +1,23 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: ica-backend
+  namespace: argocd
+spec:
+  project: default
+
+  source:
+    repoURL: https://github.com/chiquimike/ica-local.git # NUestro repositorio en GitHub
+    targetRevision: mike      # Esto se puede cambiar a mi rama 'mike' si fuese nuestro branch de despliegue
+    path: capa-logica         # la Fase 1 solo gestionamos el backend
+
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: default        # donde corre nuestra app hoy
+
+  syncPolicy:
+    automated:
+      prune: true             # borra del cluster lo que se quite de Git...
+      selfHeal: true          # ...y revierte cambios hechos a mano (auto-reparacion) Wuuuu
+    syncOptions:
+      - CreateNamespace=true

@@ -10,5 +10,6 @@ configMapGenerator:
       - codigo-web/index.html
       - codigo-web/style.css
       - codigo-web/script.js
+      - codigo-web/config.js
       - codigo-web/registro.html
       - codigo-web/profesor.html

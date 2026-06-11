@@ -1,0 +1,7 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+
+# Entorno LOCAL (Minikube). Usa la base tal cual:
+# el config.js por defecto ya apunta a Minikube (192.168.49.2), no hay que cambiar nada
+resources:
+  - ../../base

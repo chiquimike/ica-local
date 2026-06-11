@@ -2,7 +2,7 @@
 # Se mantiene en su propio manifiesto (separado del Deployment) porque su ciclo
 # de vida es distinto: el backend es desechable, pero estos datos NO se deben perder
 
-# Aislarlo facilita protegerlo de un borrado accidental y prepararlo para GitOps
+# Aislarlo facilita protegerlo de un borrado accidental y prepararlo para el GitOps que se viene
 # (Argo CD) con politica de "no podar" (Prune=false)
 apiVersion: v1
 kind: PersistentVolumeClaim
