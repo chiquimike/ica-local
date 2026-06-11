@@ -1,0 +1,16 @@
+apiVersion: argoproj.io/v1alpha1
+kind: AppProject
+metadata:
+  name: default
+  namespace: argocd
+spec:
+  description: Proyecto por defecto para las apps del ICA
+  # Es permisivo: util para empezar. Lo vamos a restringir mas adelante.
+  sourceRepos:
+    - '*'
+  destinations:
+    - namespace: '*'
+      server: '*'
+  clusterResourceWhitelist:
+    - group: '*'
+      kind: '*'

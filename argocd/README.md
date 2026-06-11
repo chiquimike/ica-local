@@ -23,13 +23,13 @@ kustomization.yaml (raiz) -> atajo = overlays/local
 ```bash
 minikube start
 # Las imagenes se sirven via hostPath (/data/imagenes). En Minikube hay que montarlas:
-minikube mount ./imagenes:/data/imagenes      # dejemoslo corriendo en otra terminal
+minikube mount ./imagenes:/data/imagenes      # dejalo corriendo en otra terminal
 ```
 
 ## 2. Desplegar la app (estado inicial)
 
 ```bash
-kubectl apply -k .            # despliega las 3 capas (el overlay local)
+kubectl apply -k .            # despliega las 3 capas (overlay local)
 kubectl get pods -w
 ```
 
@@ -44,8 +44,15 @@ kubectl -n argocd get pods -w
 
 ## 4. Registrar la Application (bootstrap)
 
-1. Edita `argocd/app-backend.yaml`: ajusta `repoURL` y `targetRevision` (a la rama de produccion o la que quieras).
-2. Aplica:
+1. Crea el AppProject `default` (Core a veces no lo trae; si falta, Argo da
+   "InvalidSpecError: project default which does not exist"):
+
+```bash
+kubectl apply -f argocd/project-default.yaml
+```
+
+2. Edita `argocd/app-backend.yaml`: ajusta `repoURL` y `targetRevision` (tu rama).
+3. Aplica:
 
 ```bash
 kubectl apply -f argocd/app-backend.yaml
@@ -57,6 +64,8 @@ kubectl -n argocd get applications
 1. Cambia algo del backend, `git push` a la rama configurada.
 2. Argo CD lo detecta y reconcilia solo (sin `kubectl apply` a mano).
 
+Todo lo de abajo es opcional, no conviene para el server pero esta bien decir que tenemos esta opcion,
+en minikube valdria la pena. Si es que quieres probar algo. 
 ```bash
 argocd login --core            # CLI en modo core (opcional)
 argocd app get ica-backend     # estado de sync y health
@@ -71,9 +80,9 @@ argocd app get ica-backend     # estado de sync y health
 - **Cambios de codigo:** `main.py` se monta via `subPath` y NO se recarga solo.
   Tras un cambio de codigo hay que reiniciar el pod del backend:
   `kubectl rollout restart deployment/api-backend`.
-- **RAM:** vigila tu RAM (Tenemos 2GB) con `kubectl top pods -A`.
+- **RAM:** vigila con `kubectl top pods -A`.
 
-## Promover al server (cuando estemos listos)
+## Promover al server (cuando este listo)
 
 - Instalar Argo CD en el K3s del HP ProLiant (mismo `core-install.yaml`).
 - Apuntar la Application a `path: overlays/server` (en vez de `capa-logica`),
