@@ -1,15 +1,16 @@
 apiVersion: argoproj.io/v1alpha1
 kind: Application
 metadata:
-  name: ica-backend
+  name: ica-stack
   namespace: argocd
 spec:
   project: default
 
   source:
     repoURL: https://github.com/chiquimike/ica-local.git # NUestro repositorio en GitHub
-    targetRevision: mike      # Esto se puede cambiar a mi rama 'mike' si fuese nuestro branch de despliegue
-    path: capa-logica         # la Fase 1 solo gestionamos el backend
+    targetRevision: main      # Esto se puede cambiar a mi rama 'mike' si fuese nuestro branch de despliegue
+    path: overlays/local      # Fase 2: gestiona TODO el stack (overlay local/Minikube)
+                              # Para el server real: path: overlays/server
 
   destination:
     server: https://kubernetes.default.svc
