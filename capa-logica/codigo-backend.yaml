@@ -85,6 +85,8 @@ data:
                 "CREATE TABLE IF NOT EXISTS usuarios ("
                 "  id INT AUTO_INCREMENT PRIMARY KEY,"
                 "  numero_cuenta VARCHAR(20),"
+                "  nombres VARCHAR(255),"
+                "  apellidos VARCHAR(255),"
                 "  nombre VARCHAR(255),"
                 "  telefono VARCHAR(20),"
                 "  correo VARCHAR(255),"
@@ -95,6 +97,10 @@ data:
                 ")"
             )
             # Para instalaciones existentes: agregamos las columnas nuevas si faltan
+            if not _columna_existe(cursor, "usuarios", "nombres"):
+                cursor.execute("ALTER TABLE usuarios ADD COLUMN nombres VARCHAR(255)")
+            if not _columna_existe(cursor, "usuarios", "apellidos"):
+                cursor.execute("ALTER TABLE usuarios ADD COLUMN apellidos VARCHAR(255)")
             if not _columna_existe(cursor, "usuarios", "area"):
                 cursor.execute("ALTER TABLE usuarios ADD COLUMN area VARCHAR(100)")
             if not _columna_existe(cursor, "usuarios", "semana_registro"):
@@ -144,7 +150,8 @@ data:
 
     class UsuarioNuevo(BaseModel):
         numero_cuenta: str
-        nombre: str
+        nombres: str
+        apellidos: str
         telefono: str
         correo: str
         carrera: str
@@ -192,15 +199,19 @@ data:
     @app.post("/usuarios")
     def crear_usuario(
         numero_cuenta: str = Form(...),
-        nombre: str = Form(...),
+        nombres: str = Form(...),
+        apellidos: str = Form(...),
         telefono: str = Form(...),
         correo: str = Form(...),
         carrera: str = Form(...),
         semestre: str = Form(...),
+        area: str = Form(...),
         historial_pdf: UploadFile = File(...),
         user_info: dict = Depends(verificar_token) # <--- Protegido
     ):
         try:
+            # El nombre completo (para el PDF y la vista) se arma como "APELLIDOS NOMBRES"
+            nombre = f"{apellidos} {nombres}".strip()
             # Guardamos el PDF con el nombre de la persona (ruta sanitizada)
             file_path = ruta_pdf(nombre)
             with open(file_path, "wb") as buffer:
@@ -208,8 +219,8 @@ data:
 
             conn = get_db_connection()
             with conn.cursor() as cursor:
-                sql = "INSERT INTO usuarios (numero_cuenta, nombre, telefono, correo, carrera, semestre) VALUES (%s, %s, %s, %s, %s, %s)"
-                val = (numero_cuenta, nombre, telefono, correo, carrera, semestre)
+                sql = "INSERT INTO usuarios (numero_cuenta, nombres, apellidos, nombre, telefono, correo, carrera, semestre, area) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s)"
+                val = (numero_cuenta, nombres, apellidos, nombre, telefono, correo, carrera, semestre, area)
                 cursor.execute(sql, val)
             conn.commit()
             conn.close()
@@ -229,19 +240,21 @@ data:
     @app.put("/usuarios/{usuario_id}")
     def actualizar_usuario(usuario_id: int, usuario: UsuarioNuevo, user_info: dict = Depends(verificar_token)): # <--- Protegido
         try:
+            # El nombre completo se recalcula como "APELLIDOS NOMBRES"
+            nombre = f"{usuario.apellidos} {usuario.nombres}".strip()
             conn = get_db_connection()
             with conn.cursor() as cursor:
                 # Si cambia el nombre, renombramos tambien el PDF para que siga vinculado
                 cursor.execute("SELECT nombre FROM usuarios WHERE id = %s", (usuario_id,))
                 anterior = cursor.fetchone()
-                if anterior and anterior['nombre'] != usuario.nombre:
+                if anterior and anterior['nombre'] != nombre:
                     ruta_anterior = ruta_pdf(anterior['nombre'])
-                    ruta_nueva = ruta_pdf(usuario.nombre)
+                    ruta_nueva = ruta_pdf(nombre)
                     if os.path.exists(ruta_anterior):
                         os.rename(ruta_anterior, ruta_nueva)
 
-                sql = "UPDATE usuarios SET numero_cuenta=%s, nombre=%s, telefono=%s, correo=%s, carrera=%s, semestre=%s, area=%s, semana_registro=%s WHERE id=%s"
-                val = (usuario.numero_cuenta, usuario.nombre, usuario.telefono, usuario.correo, usuario.carrera, usuario.semestre, usuario.area, usuario.semana_registro, usuario_id)
+                sql = "UPDATE usuarios SET numero_cuenta=%s, nombres=%s, apellidos=%s, nombre=%s, telefono=%s, correo=%s, carrera=%s, semestre=%s, area=%s, semana_registro=%s WHERE id=%s"
+                val = (usuario.numero_cuenta, usuario.nombres, usuario.apellidos, nombre, usuario.telefono, usuario.correo, usuario.carrera, usuario.semestre, usuario.area, usuario.semana_registro, usuario_id)
                 cursor.execute(sql, val)
             conn.commit()
             conn.close()

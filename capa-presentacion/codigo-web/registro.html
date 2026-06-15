@@ -15,7 +15,8 @@
         #login-container { text-align: center; background: white; padding: 30px; border-radius: 8px; box-shadow: 0 0 10px rgba(0,0,0,0.1); margin-top: 50px; }
     </style>
 
-    <!-- URL del backend segun el entorno (la define config.js, inyectado por Kustomize) -->
+    <!-- URL del backend segun el entorno (la define config.js, inyectado por kustomize) -->
+     <!-- Es el kustomize que esta en codigo-web/config.js -->
     <script src="config.js"></script>
     <script>
         function handleCredentialResponse(response) {
@@ -28,7 +29,38 @@
             document.getElementById('formulario-privado').style.display = 'block';
         }
 
+        // Semestre semi-automatico 
+        // Periodo "{Y}-I"  = Ago–Nov del año (Y-1)   (ej. 2026-I = Ago–Nov 2025)
+        // Periodo "{Y}-II" = Feb–May del año Y        (ej. 2026-II = Feb–May 2026)
+        // Los meses "hueco" (Jun-Jul, Dic, Ene) apuntan al PROXIMO periodo
+        function calcularPeriodo(d) {
+            const y = d.getFullYear();
+            const m = d.getMonth() + 1; // 1-12
+            if (m >= 2 && m <= 5)  return { y: y, mitad: 'II' };
+            if (m >= 6 && m <= 11) return { y: y + 1, mitad: 'I' };
+            if (m === 12)          return { y: y + 1, mitad: 'II' };
+            return { y: y, mitad: 'II' }; // enero
+        }
+        function etiquetaPeriodo(p) { return p.y + '-' + p.mitad; }
+        function periodoAnterior(p) { return p.mitad === 'II' ? { y: p.y, mitad: 'I' } : { y: p.y - 1, mitad: 'II' }; }
+        function periodoSiguiente(p) { return p.mitad === 'I' ? { y: p.y, mitad: 'II' } : { y: p.y + 1, mitad: 'I' }; }
+
+        function llenarSemestres() {
+            const actual = calcularPeriodo(new Date());
+            const opciones = [periodoAnterior(actual), actual, periodoSiguiente(actual)];
+            const sel = document.getElementById('semestre');
+            sel.innerHTML = '';
+            opciones.forEach((p, i) => {
+                const o = document.createElement('option');
+                o.value = etiquetaPeriodo(p);
+                o.textContent = etiquetaPeriodo(p);
+                if (i === 1) o.selected = true; // el periodo actual queda preseleccionado
+                sel.appendChild(o);
+            });
+        }
+
         window.onload = function() {
+            llenarSemestres();
             if (sessionStorage.getItem('token_ica')) {
                 desbloquearFormulario();
             }
@@ -57,8 +89,12 @@
                     <input type="text" id="cuenta" name="numero_cuenta" required maxlength="9">
                 </div>
                 <div class="campo-formulario">
-                    <label for="nombre">Nombre Completo:</label>
-                    <input type="text" id="nombre" name="nombre" required>
+                    <label for="nombres">Nombre(s):</label>
+                    <input type="text" id="nombres" name="nombres" required>
+                </div>
+                <div class="campo-formulario">
+                    <label for="apellidos">Apellidos:</label>
+                    <input type="text" id="apellidos" name="apellidos" required>
                 </div>
                 <div class="campo-formulario">
                     <label for="telefono">Teléfono:</label>
@@ -71,20 +107,32 @@
                 <div class="campo-formulario">
                     <label for="carrera">Carrera:</label>
                     <select id="carrera" name="carrera" required>
+                        <option value="ARQ">Arquitectura</option>
                         <option value="ICO">Ing. en Computación</option>
-                        <option value="IME">Ing. Mecánica Eléctrica</option>
+                        <option value="IEE">Ing. Eléctrica Electrónica</option>
                         <option value="IIND">Ing. Industrial</option>
                         <option value="CIVIL">Ing. Civil</option>
+                        <option value="IME">Ing. Mecánica</option>
+                        <option value="DII">Diseño Industrial</option>
+                        <option value="OTR">Otra</option>
+                    </select>
+                </div>
+                <div class="campo-formulario">
+                    <label for="area">Área:</label>
+                    <select id="area" name="area" required>
+                        <option value="Modelado 3D">Modelado 3D</option>
+                        <option value="Impresión 3D">Impresión 3D</option>
+                        <option value="Corte y Grabado Láser">Corte y Grabado Láser</option>
+                        <option value="Desarrollo de Videojuegos">Desarrollo de Videojuegos</option>
+                        <option value="Electrónica">Electrónica</option>
+                        <option value="Arte">Arte</option>
+                        <option value="Otro">Otro</option>
                     </select>
                 </div>
                 <div class="campo-formulario">
                     <label for="semestre">Semestre Actual:</label>
-                    <select id="semestre" name="semestre" required>
-                        <option value="2027-II">2027-II</option>
-                        <option value="2027-I">2027-I</option>
-                        <option value="2026-II">2026-II</option>
-                        <option value="2026-I">2026-I</option>
-                    </select>
+                    <!-- Las opciones las genera llenarSemestres() segun la fecha -->
+                    <select id="semestre" name="semestre" required></select>
                 </div>
                 <div class="campo-formulario">
                     <label for="pdf">Historial Académico (PDF):</label>
@@ -109,11 +157,13 @@
 
                 const formData = new FormData();
                 formData.append('numero_cuenta', document.getElementById('cuenta').value);
-                formData.append('nombre', document.getElementById('nombre').value.toUpperCase());
+                formData.append('nombres', document.getElementById('nombres').value.toUpperCase());
+                formData.append('apellidos', document.getElementById('apellidos').value.toUpperCase());
                 formData.append('telefono', document.getElementById('telefono').value);
                 formData.append('correo', document.getElementById('correo').value.toLowerCase());
                 formData.append('carrera', document.getElementById('carrera').value.toUpperCase());
                 formData.append('semestre', document.getElementById('semestre').value);
+                formData.append('area', document.getElementById('area').value);
                 formData.append('historial_pdf', archivo);
 
                 fetch(apiUrl, {

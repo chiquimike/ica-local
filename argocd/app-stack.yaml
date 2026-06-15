@@ -8,7 +8,7 @@ spec:
 
   source:
     repoURL: https://github.com/chiquimike/ica-local.git # NUestro repositorio en GitHub
-    targetRevision: main      # Esto se puede cambiar a mi rama 'mike' si fuese nuestro branch de despliegue
+    targetRevision: mike      # Esto se puede cambiar a mi rama 'mike' si fuese nuestro branch de despliegue
     path: overlays/local      # Fase 2: gestiona TODO el stack (overlay local/Minikube)
                               # Para el server real: path: overlays/server
 

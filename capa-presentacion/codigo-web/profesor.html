@@ -72,9 +72,20 @@
             .then(data => {
                 if (!Array.isArray(data)) throw new Error(data.detail || data.detalle || "Respuesta inesperada del servidor");
                 datosGlobales = data;
+                poblarFiltroSemestre(data);
                 renderizarTabla(data);
             })
             .catch(err => alert("Error: " + err.message));
+        }
+
+        // El filtro de semestre se arma con los semestres reales de los datos (no se queda viejo)
+        function poblarFiltroSemestre(datos) {
+            const sel = document.getElementById('filtro-semestre');
+            const previo = sel.value || 'todos';
+            const semestres = [...new Set(datos.map(u => u.semestre).filter(Boolean))].sort().reverse();
+            sel.innerHTML = '<option value="todos">Mostrar Todos</option>' +
+                semestres.map(s => `<option value="${s}">${s}</option>`).join('');
+            sel.value = (previo === 'todos' || semestres.includes(previo)) ? previo : 'todos';
         }
 
         window.onload = function() {
@@ -103,12 +114,9 @@
         <div id="controles" class="controles">
             <div>
                 <label><strong>Filtrar por Semestre: </strong></label>
+                <!-- Las opciones de semestre las llena poblarFiltroSemestre() con los datos reales -->
                 <select id="filtro-semestre" onchange="renderizarTabla()">
                     <option value="todos">Mostrar Todos</option>
-                    <option value="2027-II">2027-II</option>
-                    <option value="2027-I">2027-I</option>
-                    <option value="2026-II">2026-II</option>
-                    <option value="2026-I">2026-I</option>
                 </select>
             </div>
             <div>
@@ -181,27 +189,31 @@
 
             function editarUsuario(id) {
                 const u = datosGlobales.find(user => user.id == id);
-                const nNombre = prompt("Nombre:", u.nombre);
+                const nNombres = prompt("Nombre(s):", u.nombres || "");
+                const nApellidos = prompt("Apellidos:", u.apellidos || "");
                 const nTel = prompt("Teléfono:", u.telefono);
                 const nCor = prompt("Correo:", u.correo);
                 const nCar = prompt("Carrera:", u.carrera);
                 const nSem = prompt("Semestre:", u.semestre);
 
-                if(nNombre && nTel && nCor && nCar && nSem) {
+                if(nNombres && nApellidos && nTel && nCor && nCar && nSem) {
                     const token = sessionStorage.getItem('token_ica');
                     fetch(`${apiUrl}/${id}`, {
                         method: 'PUT',
-                        headers: { 
+                        headers: {
                             'Content-Type': 'application/json',
                             'Authorization': 'Bearer ' + token
                         },
                         body: JSON.stringify({
                             numero_cuenta: u.numero_cuenta,
-                            nombre: nNombre.toUpperCase(),
+                            nombres: nNombres.toUpperCase(),
+                            apellidos: nApellidos.toUpperCase(),
                             telefono: nTel,
                             correo: nCor.toLowerCase(),
                             carrera: nCar.toUpperCase(),
-                            semestre: nSem
+                            semestre: nSem,
+                            area: u.area,                       // preservamos lo que ya tenia
+                            semana_registro: u.semana_registro
                         })
                     })
                     .then(res => res.json())
@@ -209,13 +221,15 @@
                 }
             }
 
-            // === Perfil del alumno (modal) ===
+            // === Perfil del Alumno (Ventanita Emergente) ===
 
-            // OJO: ajusta estas areas a las que use el Centro de Innovacion
-            const AREAS = ["Desarrollo de Software", "Redes y Telecomunicaciones", "Bases de Datos", "Soporte Técnico", "Diseño Web", "Administración de Sistemas"];
+            // Areas oficiales del ICA (deben coincidir con registro.html)
+            const AREAS = ["Modelado 3D", "Impresión 3D", "Corte y Grabado Láser", "Desarrollo de Videojuegos", "Electrónica", "Arte", "Otro"];
             // Nombre completo de cada carrera para mostrarlo en el perfil
-            const CARRERAS = { "ICO": "Ingeniería en Computación", "IME": "Ingeniería Mecánica Eléctrica", "IIND": "Ingeniería Industrial", "CIVIL": "Ingeniería Civil" };
-            const SEMANAS = ["1ra semana", "2da semana", "3ra semana"];
+            // Solo estan las que creemos que es más comun que se inscribin
+            // Falta agregar el campo "Otra", pero hay que checarlo
+            const CARRERAS = { "ARQ": "Arquitectura", "ICO": "Ingeniería en Computación", "IEE": "Ingeniería Eléctrica Electrónica", "IIND": "Ingeniería Industrial", "CIVIL": "Ingeniería Civil", "IME": "Ingeniería Mecánica", "DII": "Diseño Industrial", "OTR": "Otra"};
+            const SEMANAS = ["1ra semana", "2da semana", "3ra semana", "Otra"];
 
             function abrirPerfil(id) {
                 const token = sessionStorage.getItem('token_ica');
@@ -248,12 +262,12 @@
                         <label>Área</label>
                         <select id="perfil-area"><option value="">-- Sin asignar --</option>${opcionesArea}</select>
                     </div>
-                    <button class="btn-guardar" onclick="guardarPerfil(${u.id})">💾 Guardar datos del perfil</button>
+                    <button class="btn-guardar" onclick="guardarPerfil(${u.id})">Guardar Datos del Perfil</button>
                     <div class="perfil-campo" style="margin-top: 20px;">
                         <label>Histórico de proyectos</label>
                         <ul class="lista-proyectos" id="lista-proyectos"></ul>
                         <div class="fila-agregar">
-                            <input type="text" id="nuevo-proyecto" placeholder="Nombre del proyecto">
+                            <input type="text" id="nuevo-proyecto" placeholder="Nombre del Proyecto">
                             <button onclick="agregarProyecto(${u.id})">Agregar</button>
                         </div>
                     </div>
@@ -284,7 +298,8 @@
                     headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + token },
                     body: JSON.stringify({
                         numero_cuenta: u.numero_cuenta,
-                        nombre: u.nombre,
+                        nombres: u.nombres,
+                        apellidos: u.apellidos,
                         telefono: u.telefono,
                         correo: u.correo,
                         carrera: u.carrera,
@@ -308,7 +323,7 @@
                     body: JSON.stringify({ nombre: nombre })
                 })
                 .then(res => res.json())
-                .then(() => { abrirPerfil(usuarioId); }); // recargamos el perfil con el proyecto nuevo
+                .then(() => { abrirPerfil(usuarioId); }); // Se recarga el perfil con el proyecto nuevo
             }
 
             function eliminarProyecto(proyectoId, usuarioId) {
@@ -326,7 +341,7 @@
                 document.getElementById('modal-perfil').style.display = 'none';
             }
 
-            // Abre el historial PDF (endpoint protegido) enviando el token y mostrandolo via blob
+            // Abre el historial PDF (Tiene endpoint protegido) enviando el token y mostrandolo via blob
             function verPdf(id) {
                 const u = datosGlobales.find(user => user.id == id);
                 if (!u) return;
@@ -349,9 +364,9 @@
             function descargarExcel() {
                 const filtro = document.getElementById('filtro-semestre').value;
                 const datosAExportar = (filtro === "todos") ? datosGlobales : datosGlobales.filter(u => u.semestre === filtro);
-                let csv = "No. Cuenta,Nombre,Telefono,Correo,Carrera,Semestre\n";
+                let csv = "No. Cuenta,Apellidos,Nombres,Telefono,Correo,Area,Carrera,Semestre\n";
                 datosAExportar.forEach(u => {
-                    csv += `"${u.numero_cuenta}","${u.nombre}","${u.telefono}","${u.correo}","${u.carrera}","${u.semestre}"\n`;
+                    csv += `"${u.numero_cuenta}","${u.apellidos || ''}","${u.nombres || ''}","${u.telefono}","${u.correo}","${u.area || ''}","${u.carrera}","${u.semestre}"\n`;
                 });
                 const blob = new Blob([csv], { type: 'text/csv' });
                 const url = window.URL.createObjectURL(blob);
