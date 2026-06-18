@@ -585,3 +585,137 @@ body {
   font-size: 0.8rem;
   margin-right: 5px;
 }
+
+/* ============================================= */
+/* AJUSTE PARA TABLAS COMPLETAS EN TARJETAS */
+/* ============================================= */
+
+/* Contenedor responsivo para tablas */
+.table-responsive {
+    width: 100%;
+    margin-top: 1rem;
+    overflow-x: auto; /* Permite scroll horizontal si es necesario */
+    -webkit-overflow-scrolling: touch;
+}
+
+/* Estilos de la tabla */
+.timetable {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.85rem;
+    text-align: center;
+}
+
+/* Encabezado de la tabla (Colores UNAM) */
+.unam-theme-table thead {
+    background-color: var(--unam-azul);
+    color: var(--unam-oro);
+}
+
+/* Celdas de la tabla */
+.unam-theme-table th, 
+.unam-theme-table td {
+    padding: 0.75rem 0.5rem;
+    border: 1px solid rgba(0,0,0,0.1);
+}
+
+/* Filas alternas */
+.unam-theme-table tbody tr:nth-child(even) {
+    background-color: #f8f9fa;
+}
+
+/* Efecto hover */
+.unam-theme-table tbody tr:hover {
+    background-color: rgba(197, 157, 26, 0.1);
+}
+
+/* Celdas libres/vacías */
+.unam-theme-table td.libre {
+    color: #a0a0a0;
+    font-style: italic;
+    background-color: #fafafa;
+}
+
+/* Celdas de asesoría */
+.unam-theme-table td.asesoria {
+    color: #004d40;
+    font-weight: 500;
+    background-color: #e0f2f1;
+}
+
+/* Ajustes responsivos adicionales */
+@media (max-width: 600px) {
+    .timetable {
+        font-size: 0.75rem; /* Fuente más pequeña en móviles */
+    }
+}
+
+/* ============================================= */
+/* ESTILOS ESPECÍFICOS PARA LA GALERÍA DE PROYECTOS */
+/* ============================================= */
+
+/* Contenedor principal centrado de la galería */
+.gallery-container {
+    max-width: 900px; /* Ancho máximo para que no se estiren demasiado las tarjetas de la galería */
+    margin: 40px auto; /* Centrado en la página */
+    display: flex;
+    flex-direction: column;
+    gap: 30px; /* Espacio vertical entre las categorías de la galería */
+}
+
+/* Categoría de la galería (un contenedor para el título y la cuadrícula de fotos) */
+.gallery-category {
+    width: 100%;
+}
+
+/* Título del curso para cada categoría de la galería */
+.gallery-course-title {
+    color: var(--unam-azul); /* Usa tu variable de azul marino */
+    font-size: 1.5rem;
+    font-weight: 700;
+    margin-bottom: 20px;
+    letter-spacing: 1px;
+}
+
+/* Cuadrícula de fotos de la galería (2 columnas) */
+.gallery-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr); /* 2 columnas para fotos de la galería */
+    gap: 30px; /* Espacio entre las tarjetas de fotos de la galería */
+    width: 100%;
+}
+
+/* Tarjetas de fotos de la galería */
+.gallery-card {
+    flex: 0 1 calc(50% - 15px); /* Ocupan la mitad del ancho menos el gap */
+    max-width: 100%; /* Las tarjetas de fotos de la galería ocupan el ancho de la columna */
+}
+
+/* Imagen de la galería */
+.gallery-image {
+    width: 100%;
+    height: 180px; /* Tamaño de imagen de la galería de fotos */
+    object-fit: cover; /* Centra y recorta la imagen sin deformar */
+    display: block;
+    border-bottom: 1px solid var(--border-card);
+}
+
+/* Estilo para celdas vacías o libres en la galería */
+.libre-placeholder {
+    color: #a0a0a0;
+    font-style: italic;
+    text-align: center;
+    background-color: #fafafa;
+}
+
+/* RESPONSIVO PARA LA GALERÍA DE FOTOS */
+@media (max-width: 768px) {
+    .gallery-grid {
+        grid-template-columns: 1fr; /* Se apilan en móvil */
+        align-items: center;
+    }
+    .gallery-card {
+        width: 100%;
+        max-width: 100%;
+    }
+}

@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Ingenierías ICA | FES Aragón UNAM</title>
-    <link rel="icon" type="image/png" href="img/favicon.jpg">
+    <link rel="icon" type="image/png" href="favicon.jpg">
     <link rel="stylesheet" href="style.css">
     <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;700&display=swap" rel="stylesheet">
 </head>
@@ -25,8 +25,8 @@
 
         <div class="center-name-container">
             <h1 class="center-full-name">
-                <span class="center-light">INNOVATION CENTER</span> 
-                <span class="center-bold">ARAGON</span>
+                <span class="center-light">SECRETARIA DE</span> 
+                <span class="center-bold">VINCULACIÓN</span>
             </span>
         </div>
     </div>
@@ -37,7 +37,7 @@
         <li><a href="#" id="btn-inicio" class="active" onclick="showSection('inicio')">Inicio</a></li>
         <li><a href="#" id="btn-cursos" onclick="showSection('cursos')">Cursos</a></li>
         <li><a href="#" id="btn-servicios" onclick="showSection('servicios')">Servicios</a></li> 
-        <!-- <li><a href="#" id="btn-proyectos" onclick="showSection('proyectos')">Proyectos</a></li> -->
+        <li><a href="#" id="btn-Galeria" onclick="showSection('galeria')">Galeria</a></li>
         <li><a href="#" id="btn-horarios" onclick="showSection('horarios')">Horarios</a></li>
         <li><a href="#" id="btn-servicio" onclick="showSection('servicio social')">Servicio Social</a></li> </ul>
 </nav>
@@ -45,8 +45,8 @@
     <main class="container">
         <section id="inicio" class="content-section active full-centered-section">
     <div class="hero-text-container">
-        <h1 class="section-title centered-text">SECRETARÍA DE VINCULACIÓN</h1>
-        <p class="subtitle centered-text">Innovation Center Aragón.</p>
+        <h1 class="section-title centered-text">INNOVATION CENTER ARAGON</h1>
+        <p class="subtitle centered-text">UNAM</p>
     </div>
     
     <div class="main-image-container">
@@ -54,27 +54,10 @@
     </div>
 
     <div class="welcome-text-section">
+        <p>Este espacio impulsa el desarrollo de competencias críticas como la programación, el análisis de datos y el pensamiento lógico. Además de ser un centro de experimentación y desarrollo de proyectos, el ICA fortalece la preparación profesional de la comunidad universitaria a través de asesorías, talleres y actividades complementarias que conectan el conocimiento académico con las exigencias del entorno laboral.</p>
+
         <p>El ICA de la FES Aragón es un centro académico dedicado al aprendizaje práctico y la innovación tecnológica. Su objetivo principal es complementar la formación teórica de los estudiantes mediante el uso de herramientas especializadas, laboratorios de cómputo y la resolución de problemas reales, fomentando un entorno de trabajo colaborativo y dinámico entre alumnos y docentes.</p>
         
-        <p>Este espacio impulsa el desarrollo de competencias críticas como la programación, el análisis de datos y el pensamiento lógico. Además de ser un centro de experimentación y proyectos, el ICA fortalece la preparación profesional de la comunidad universitaria a través de asesorías, talleres y actividades complementarias que conectan el conocimiento académico con las exigencias del entorno laboral.</p>
-        
-        <div class="grid-layout" style="margin-top: 40px;">
-                <div class="card-unam">
-                    <div class="card-info">
-                        <h3>Reservación de Cubículos</h3>
-                        <p>Contamos con espacios diseñados para el trabajo colaborativo y estudio grupal. Consulta disponibilidad directamente en el laboratorio.</p>
-                        <button class="btn-unam" onclick="showSection('servicios')">Más información</button>
-                    </div>
-                </div>
-                <div class="card-unam">
-                    <div class="card-info">
-                        <h3>Espacio CLOUD</h3>
-                        <p>Nuestra aula especializada en tecnologías de red y servidores. Un entorno de alto rendimiento para prácticas avanzadas.</p>
-                        <button class="btn-unam" onclick="showSection('horarios')">Ver Horarios</button>
-                    </div>
-                </div>
-            </div>
-
         <p class="final-quote-with-animation">
             <strong>En conjunto, el ICA representa un espacio donde la teoría cobra vida, impulsando a los estudiantes a experimentar, crear y prepararse para los retos del entorno profesional.</strong>
             
@@ -89,31 +72,266 @@
     
     <div class="grid-layout">
         <div class="card card-unam">
-         <div class="card card-classroom">
-            <img src="img/aula_cloud.jpeg" alt="Interior del aula Cloud con equipos de red" class="classroom-image">
-        </div>
+            <div class="card card-classroom">
+                <img src="img/aula_cloud.jpeg" alt="Interior del aula Cloud con equipos de red" class="classroom-image">
+            </div>
             <div class="card-header-unam">CLOUD</div>
             <div class="card-info">
                 <h3>Horario</h3>
-                <p>Salón CLOUD</p>
+                <p>Salón CLOUD (Capacidad: 30 alumnos)</p>
 
-                <a href="img/cloud.pdf" target="_blank" class="btn-unam" style="text-decoration: none; display: inline-block; text-align: center;">
-                    Ver Detalles
-                </a>
+                <div class="table-responsive">
+                    <table class="timetable unam-theme-table">
+                        <thead>
+                            <tr>
+                                <th>Hora</th>
+                                <th>Lunes</th>
+                                <th>Martes</th>
+                                <th>Miércoles</th>
+                                <th>Jueves</th>
+                                <th>Viernes</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>07:00-09:00</td>
+                                <td class="libre">Libre</td>
+                                <td>Redes I <br>(Quintero C. J. Manuel)</td>
+                                <td class="libre">Libre</td>
+                                <td>Redes I <br>(Quintero C. J. Manuel)</td>
+                                <td class="libre">Libre</td>
+                            </tr>
+                            <tr>
+                                <td>09:00-11:00</td>
+                                <td class="libre">Libre</td>
+                                <td>Redes I (1) <br>(Quintero C. J. Manuel)</td>
+                                <td class="libre">Libre</td>
+                                <td>Redes I <br>(Quintero C. J. Manuel)</td>
+                                <td class="libre">Libre</td>
+                            </tr>
+                            <tr>
+                                <td>11:00-13:00</td>
+                                <td>Programación Web <br>(Velasco A. Aaron)</td>
+                                <td>Seguridad Informática <br>(Hernández A. Leobardo)</td>
+                                <td>Programación Web II <br>(Velasco A. Aaron)</td>
+                                <td>Seguridad Informática <br>(Hernández A. Leobardo)</td>
+                                <td>Programación Web II <br>(Velasco A. Aaron)</td>
+                            </tr>
+                            <tr>
+                                <td>11:00-13:00</td>
+                                <td class="libre">Libre</td>
+                                <td class="asesoria">Asesoría Ciencias Básicas</td>
+                                <td class="libre">Libre</td>
+                                <td class="asesoria">Asesoría Ciencias Básicas</td>
+                                <td class="libre">Libre</td>
+                            </tr>
+                            <tr>
+                                <td>13:00-14:20</td>
+                                <td class="libre">Libre</td>
+                                <td class="libre">Libre</td>
+                                <td>Programación Web II <br>(Candelario A. Jorge L.)</td>
+                                <td class="libre">Libre</td>
+                                <td>Programación Web II <br>(Candelario A. Jorge L.)</td>
+                            </tr>
+                            <tr>
+                                <td>13:00-15:00</td>
+                                <td class="libre">Libre</td>
+                                <td>Redes II <br>(García G. Enrique)</td>
+                                <td class="libre">Libre</td>
+                                <td>Redes II <br>(García G. Enrique)</td>
+                                <td class="libre">Libre</td>
+                            </tr>
+                            <tr>
+                                <td>14:20-20:00</td>
+                                <td class="libre">Libre</td>
+                                <td class="libre">Libre</td>
+                                <td class="libre">Libre</td>
+                                <td>Lab. Redes I <br>(Torres R. Gerardo)</td>
+                                <td class="libre">Libre</td>
+                            </tr>
+                            <tr>
+                                <td>15:00-16:20</td>
+                                <td>Prog. Videojuegos <br>(Candelario A. Jorge L.)</td>
+                                <td class="libre">Libre</td>
+                                <td>Prog. Videojuegos <br>(Candelario A. Jorge L.)</td>
+                                <td class="libre">Libre</td>
+                                <td>Prog. Videojuegos II <br>(Candelario A. Jorge L.)</td>
+                            </tr>
+                            <tr>
+                                <td>15:30-20:00</td>
+                                <td>Lab. Redes I <br>(Torres R. Gerardo)</td>
+                                <td class="libre">Libre</td>
+                                <td class="libre">Libre</td>
+                                <td class="libre">Libre</td>
+                                <td class="libre">Libre</td>
+                            </tr>
+                            <tr>
+                                <td>17:00-18:30</td>
+                                <td class="asesoria">Asesoría Ciencias Básicas</td>
+                                <td class="libre">Libre</td>
+                                <td class="asesoria">Asesoría Ciencias Básicas</td>
+                                <td class="libre">Libre</td>
+                                <td class="libre">Libre</td>
+                            </tr>
+                            <tr>
+                                <td>18:00-19:00</td>
+                                <td class="libre">Libre</td>
+                                <td>Redes II <br>(Torres R. Gerardo)</td>
+                                <td class="libre">Libre</td>
+                                <td>Lab. Redes I <br>(Torres R. Gerardo)</td>
+                                <td class="libre">Libre</td>
+                            </tr>
+                            <tr>
+                                <td>18:00-21:00</td>
+                                <td class="libre">Libre</td>
+                                <td>Redes II <br>(Mórquez Gerardo)</td>
+                                <td class="libre">Libre</td>
+                                <td class="libre">Libre</td>
+                                <td class="libre">Libre</td>
+                            </tr>
+                            <tr>
+                                <td>19:00-20:00</td>
+                                <td class="libre">Libre</td>
+                                <td>Redes II <br>(Torres R. Gerardo)</td>
+                                <td class="libre">Libre</td>
+                                <td class="libre">Libre</td>
+                                <td class="libre">Libre</td>
+                            </tr>
+                            <tr>
+                                <td>19:00-21:00</td>
+                                <td class="libre">Libre</td>
+                                <td class="libre">Libre</td>
+                                <td class="libre">Libre</td>
+                                <td>Redes II <br>(García G. Enrique)</td>
+                                <td class="libre">Libre</td>
+                            </tr>
+                            <tr>
+                                <td>19:00-21:00</td>
+                                <td class="libre">Libre</td>
+                                <td class="libre">Libre</td>
+                                <td class="libre">Libre</td>
+                                <td>Lab. Redes I <br>(Torres R. Gerardo)</td>
+                                <td class="libre">Libre</td>
+                            </tr>
+                            <tr>
+                                <td>20:00-21:20</td>
+                                <td>Redes II <br>(Rodríguez Gerardo)</td>
+                                <td class="libre">Libre</td>
+                                <td class="libre">Libre</td>
+                                <td class="libre">Libre</td>
+                                <td>Lab. Redes <br>(Tumiss Ferando)</td>
+                            </tr>
+                            <tr>
+                                <td>20:00-21:29</td>
+                                <td class="libre">Libre</td>
+                                <td class="libre">Libre</td>
+                                <td>Redes II <br>(Torrete R. Gerardo)</td>
+                                <td class="libre">Libre</td>
+                                <td class="libre">Libre</td>
+                            </tr>
+                            <tr>
+                                <td>20:00-21:29</td>
+                                <td class="libre">Libre</td>
+                                <td class="libre">Libre</td>
+                                <td class="libre">Libre</td>
+                                <td class="libre">Libre</td>
+                                <td>Redes II <br>(Torrés )</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
             </div>
         </div>
+
         <div class="card card-unam">
-         <div class="card card-classroom">
-            <img src="img/capacitación.jpeg" alt="Interior del aula Cloud con equipos de red" class="classroom-image">
-        </div>
+            <div class="card card-classroom">
+                <img src="img/capacitación.jpeg" alt="Interior del aula Capacitación con drone" class="classroom-image">
+            </div>
             <div class="card-header-unam">CAPACITACIÓN</div>
             <div class="card-info">
                 <h3>Horario</h3>
-                <p>Aulas A-201 / A-202</p>
+                <p>Aulas A-201 / A-202 (Capacidad: 8 alumnos)</p>
                 
-                <a href="img/capacitacion.pdf" target="_blank" class="btn-unam" style="text-decoration: none; display: inline-block; text-align: center;">
-                    Ver Detalles
-                </a>
+                <div class="table-responsive">
+                    <table class="timetable unam-theme-table">
+                        <thead>
+                            <tr>
+                                <th>Hora</th>
+                                <th>Lunes</th>
+                                <th>Martes</th>
+                                <th>Miércoles</th>
+                                <th>Jueves</th>
+                                <th>Viernes</th>
+                                <th>Hora</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>14:00-17:00</td>
+                                <td class="libre">Libre</td>
+                                <td class="libre">Libre</td>
+                                <td>Formulación Proyectos <br>(Jocelyn Sequera A.)</td>
+                                <td class="libre">Libre</td>
+                                <td class="libre">Libre</td>
+                                <td>14:00-17:00</td>
+                            </tr>
+                            <tr>
+                                <td>14:30-16:30</td>
+                                <td class="libre">Libre</td>
+                                <td class="libre">Libre</td>
+                                <td class="libre">Libre</td>
+                                <td>Formulación Proyectos <br>(Jocelyn Sequera)</td>
+                                <td class="libre">Libre</td>
+                                <td>14:30-16:30</td>
+                            </tr>
+                            <tr>
+                                <td>15:00-18:00</td>
+                                <td class="libre">Libre</td>
+                                <td>Derecho Mercantil <br>(María Isabel Orozco L.)</td>
+                                <td class="libre">Libre</td>
+                                <td class="libre">Libre</td>
+                                <td class="libre">Libre</td>
+                                <td>15:00-18:00</td>
+                            </tr>
+                            <tr>
+                                <td>15:00-19:00</td>
+                                <td>Financiamiento Agropecuario <br>(Marcelino Miranda H.)</td>
+                                <td class="libre">Libre</td>
+                                <td class="libre">Libre</td>
+                                <td class="libre">Libre</td>
+                                <td class="libre">Libre</td>
+                                <td>15:00-19:00</td>
+                            </tr>
+                            <tr>
+                                <td>20:00-20:30</td>
+                                <td class="libre">Libre</td>
+                                <td class="libre">Libre</td>
+                                <td class="libre">Libre</td>
+                                <td class="libre">Libre</td>
+                                <td>Juan Manuel <br>(López Carreto J. M.)</td>
+                                <td>20:00-20:30</td>
+                            </tr>
+                            <tr>
+                                <td>20:00-21:30</td>
+                                <td class="libre">Libre</td>
+                                <td class="libre">Libre</td>
+                                <td>López Carreto Juan Manuel</td>
+                                <td class="libre">Libre</td>
+                                <td class="libre">Libre</td>
+                                <td>20:00-21:30</td>
+                            </tr>
+                            <tr>
+                                <td>21:00-22:00</td>
+                                <td class="libre">Libre</td>
+                                <td class="libre">Libre</td>
+                                <td class="libre">Libre</td>
+                                <td class="libre">Libre</td>
+                                <td>López Carreto Juan Manuel</td>
+                                <td>21:00-22:00</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
             </div>
         </div>
     </div>
@@ -134,17 +352,14 @@
 
 <div class="ss-features">
   <div class="feature">
-    <span>💡</span>
     <p>Participa en proyectos reales</p>
   </div>
 
   <div class="feature">
-    <span>🤝</span>
     <p>Colabora con equipos multidisciplinarios</p>
   </div>
 
   <div class="feature">
-    <span>🚀</span>
     <p>Desarrolla habilidades profesionales</p>
   </div>
 </div>
@@ -202,22 +417,100 @@
 
     </div>
 </section>
-
-        <section id="proyectos" class="content-section">
-    <h1 class="section-title">Innovación ICA</h1>
-    <p class="subtitle">Galería de proyectos destacados.</p>
-    <div class="grid-layout">
-        <div class="card card-unam">
-            <div class="image-placeholder">
-                <img src="img/tienda_ica.jpeg" alt="Sistema Check-in Lab" class="course-image img-proyect-full">
-            </div>
-            <div class="card-info">
-                <h3>Tienda Oficial del ICA</h3>
-                <p>M E R C H A N D I S I N G</p>
-            </div>
-        </div>
+<section id="galeria" class="content-section full-centered-section gallery-section">
+    <div class="hero-text-container">
+        <h1 class="section-title centered-text">Galería de Proyectos</h1>
+        <p class="subtitle centered-text">Un espacio de la comunidad ICA para la comunidad ICA. Explora las creaciones de tus compañeros organizadas por curso.</p>
     </div>
-</section>
+
+    <div class="ss-container gallery-container">
+        
+        <div class="gallery-category">
+            <h2 class="gallery-course-title">Modelado 3D</h2>
+            <div class="gallery-grid">
+                
+                <div class="card-unam gallery-card">
+                    <img src="img/ruta/a/foto_modelado1.jpg" alt="Proyecto Modelado 3D: Goyito 3D" class="gallery-image">
+                    <div class="card-info">
+                        <h3>Goyito 3D</h3>
+                        <p>Modelado detallado de la mascota con fines de merchandising. [cite: 3]</p>
+                        <a href="ruta/a/foto_modelado1.jpg" target="_blank" class="btn-unam">Ver Detalles</a>
+                    </div>
+                </div>
+
+                <div class="card-unam gallery-card">
+                    <img src="img/ruta/a/foto_modelado2.jpg" alt="Proyecto Modelado 3D: Puzzle FES" class="gallery-image">
+                    <div class="card-info">
+                        <h3>Puzzle FES Aragón</h3>
+                        <p>Diseño de un puzzle basado en el logo de la FES Aragón. [cite: 3]</p>
+                        <a href="ruta/a/foto_modelado2.jpg" target="_blank" class="btn-unam">Ver Detalles</a>
+                    </div>
+                </div>
+            </div> </div> <div class="gallery-category">
+            <h2 class="gallery-course-title">Impresión 3D</h2>
+            <div class="gallery-grid">
+                
+                <div class="card-unam gallery-card">
+                    <img src="img/ruta/a/foto_impresion1.jpg" alt="Proyecto Impresión 3D: Goyito Fes Aragón" class="gallery-image">
+                    <div class="card-info">
+                        <h3>Goyito Fes Aragón</h3>
+                        <p>Impresión final del modelo 3D, listo para su exhibición. [cite: 3]</p>
+                        <a href="ruta/a/foto_impresion1.jpg" target="_blank" class="btn-unam">Ver Detalles</a>
+                    </div>
+                </div>
+
+                <div class="card-unam gallery-card">
+                    <div class="libre-placeholder">
+                        <img src="img/ruta/a/foto_impresion2.jpg" alt="Próximamente Proyecto" class="gallery-image">
+                    </div>
+                    <div class="card-info">
+                        <h3>Próximamente</h3>
+                        <p>Estamos trabajando para mostrarte más proyectos de la comunidad ICA.</p>
+                    </div>
+                </div>
+            </div> </div> <div class="gallery-category">
+            <h2 class="gallery-course-title">Corte Láser</h2>
+            <div class="gallery-grid">
+                
+                <div class="card-unam gallery-card">
+                    <img src="img/ruta/a/foto_corte1.jpg" alt="Proyecto Corte Láser: Llavero ICA" class="gallery-image">
+                    <div class="card-info">
+                        <h3>Llavero Oficial ICA</h3>
+                        <p>Diseño y corte de llaveros de precisión para la comunidad universitaria. [cite: 3]</p>
+                        <a href="ruta/a/foto_corte1.jpg" target="_blank" class="btn-unam">Ver Detalles</a>
+                    </div>
+                </div>
+
+                <div class="card-unam gallery-card">
+                    <img src="img/ruta/a/foto_corte2.jpg" alt="Proyecto Corte Láser: Signo UNAM" class="gallery-image">
+                    <div class="card-info">
+                        <h3>Signo UNAM</h3>
+                        <p>Corte de un signo detallado con alta precisión para la facultad. [cite: 3]</p>
+                        <a href="ruta/a/foto_corte2.jpg" target="_blank" class="btn-unam">Ver Detalles</a>
+                    </div>
+                </div>
+            </div> </div> <div class="gallery-category">
+            <h2 class="gallery-course-title">Diseño de Videojuegos</h2>
+            <div class="gallery-grid">
+                
+                <div class="card-unam gallery-card">
+                    <img src="img/ruta/a/foto_videojuego1.jpg" alt="Proyecto Videojuegos: ICA Adventure" class="gallery-image">
+                    <div class="card-info">
+                        <h3>ICA Adventure</h3>
+                        <p>Diseño de mundos interactivos y experiencias jugables en 3D. [cite: 3]</p>
+                        <a href="ruta/a/foto_videojuego1.jpg" target="_blank" class="btn-unam">Ver Detalles</a>
+                    </div>
+                </div>
+
+                <div class="card-unam gallery-card">
+                    <img src="img/ruta/a/foto_videojuego2.jpg" alt="Proyecto Videojuegos: Goyito Challenge" class="gallery-image">
+                    <div class="card-info">
+                        <h3>Goyito Challenge</h3>
+                        <p>Diseño de una experiencia de juego interactiva con la mascota. [cite: 3]</p>
+                        <a href="ruta/a/foto_videojuego2.jpg" target="_blank" class="btn-unam">Ver Detalles</a>
+                    </div>
+                </div>
+            </div> </div> </div> </section>
 
         <section id="cursos" class="content-section">
             <h1 class="section-title">Cursos y Talleres</h1>
@@ -258,6 +551,20 @@
                     </div>
                     <img src="img/aula_cloud.jpeg" alt="Visualización de Base de Datos MySQL" class="course-image">
                 </div>
+                <div class="card card-unam">
+                    <div class="card-info">
+                        <h3>Electrónica</h3>
+                        <p>Crea tus propios circuitos y electrónicos funcionales, desde cero.</p>
+                    </div>
+                    <img src="img/electronica.png" alt="Visualización de Base de Datos MySQL" class="course-image">
+                </div>
+                <div class="card card-unam">
+                    <div class="card-info">
+                        <h3>Arte</h3>
+                        <p>Explora tu creatividad y desata tu potencial artístico a través de diversas técnicas y medios.</p>
+                    </div>
+                    <img src="img/arte.png" alt="Visualización de Base de Datos MySQL" class="course-image">
+                </div>
             </div>
         </section>
 
@@ -269,14 +576,26 @@
                     <div class="card-info">
                         <h3>Reservación de Cubículos</h3>
                         <p>Contamos con espacios diseñados para el trabajo colaborativo y estudio grupal. Consulta disponibilidad directamente en el laboratorio.</p>
-                        <button class="btn-unam" onclick="showSection('servicios')">Más información</button>
                     </div>
                 </div>
                 <div class="card-unam">
                     <div class="card-info">
-                        <h3>Espacio CLOUD</h3>
-                        <p>Nuestra aula especializada en tecnologías de red y servidores. Un entorno de alto rendimiento para prácticas avanzadas.</p>
-                        <button class="btn-unam" onclick="showSection('horarios')">Ver Horarios</button>
+                        <h3>Prestamo de Computadortas</h3>
+                        <p>Cursos prácticos y programas de formación continua para fortalecer tus habilidades profesionales.</p>
+                    </div>
+                </div>
+                <div class="card-unam">
+                    <div class="card-info">
+                        <h3>Corte Láser</h3>
+                        <p>ecnología avanzada para el corte y grabado de precisión en tus proyectos de diseño e ingeniería.</p>
+                        <a href="img/cortelaser.pdf" target="_blank" class="btn-unam">Ver Detalles</a>
+                    </div>
+                </div>
+                <div class="card-unam">
+                    <div class="card-info">
+                        <h3>Impresión 3D</h3>
+                        <p>ecnología avanzada para el corte y grabado de precisión en tus proyectos de diseño e ingeniería.</p>
+                        <a href="img/impresion3d.pdf" target="_blank" class="btn-unam">Ver Detalles</a>
                     </div>
                 </div>
             </div>
@@ -295,6 +614,7 @@
                 <li><a href="#" onclick="showSection('inicio')">INICIO</a></li>
                 <li><a href="#" onclick="showSection('cursos')">CURSOS</a></li>
                 <li><a href="#" onclick="showSection('servicios')">SERVICIOS</a></li>
+                <li><a href="#" onclick="showSection('galeria')">GALERIA</a></li>
                 <li><a href="#" onclick="showSection('horarios')">HORARIOS</a></li>
                 <li><a href="#" onclick="showSection('servicio')">SERVICIO SOCIAL</a></li>
             </ul>
@@ -302,6 +622,6 @@
 
 </footer>
 
-    <script src="script.js"></script>
+    <script src="img/script.js"></script>
 </body>
 </html>
