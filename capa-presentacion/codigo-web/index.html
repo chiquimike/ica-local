@@ -24,6 +24,7 @@
       .cms-btn-cancelar { background: #dc3545; }
       [data-cms].cms-editando { outline: 2px dashed #0056b3; outline-offset: 3px;
         background: rgba(0,86,179,.05); cursor: text; border-radius: 3px; }
+      [data-cms-img].cms-img-editando { outline: 3px dashed #28a745; outline-offset: 3px; cursor: pointer; }
     </style>
 </head>
 <body>
@@ -68,7 +69,7 @@
     </div>
     
     <div class="main-image-container">
-        <img src="img/entrada_cloud.jpeg" alt="Entrada de la Facultad FES Aragón UNAM" class="hero-image">
+        <img src="img/entrada_cloud.jpeg" alt="Entrada de la Facultad FES Aragón UNAM" class="hero-image" data-cms-img="inicio.hero_img">
     </div>
 
     <div class="welcome-text-section">
@@ -601,6 +602,9 @@
         <button class="cms-btn-guardar" id="btn-cms-guardar" onclick="guardarEdicionCMS()" style="display:none;">Guardar</button>
         <button class="cms-btn-cancelar" id="btn-cms-cancelar" onclick="cancelarEdicionCMS()" style="display:none;">Cancelar</button>
     </div>
+
+    <!-- CMS: selector de archivo (oculto) para subir imagenes -->
+    <input type="file" id="cms-file-input" accept="image/*" style="display:none;">
 
     <script src="script.js"></script>
 </body>

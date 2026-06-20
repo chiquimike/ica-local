@@ -52,6 +52,9 @@ spec:
         # Esta wea no hay que borrarla
         - name: pdf-storage
           mountPath: /app/pdfs
+        # Imagenes subidas desde el CMS
+        - name: cms-uploads
+          mountPath: /app/uploads
       volumes:
       - name: codigo-vol
         configMap:
@@ -59,6 +62,9 @@ spec:
       - name: pdf-storage
         persistentVolumeClaim:
           claimName: backend-pdf-pvc
+      - name: cms-uploads
+        persistentVolumeClaim:
+          claimName: cms-uploads-pvc
 ---
 apiVersion: v1
 kind: Service

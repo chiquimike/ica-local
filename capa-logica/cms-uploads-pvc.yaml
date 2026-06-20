@@ -1,0 +1,15 @@
+# Almacenamiento de las imagenes subidas desde el CMS.
+# Igual que el de los PDFs: ciclo de vida propio y protegido de borrado por Argo.
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: cms-uploads-pvc
+  annotations:
+    # Argo CD NUNCA debe borrar este volumen aunque haga prune
+    argocd.argoproj.io/sync-options: Prune=false
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 1Gi

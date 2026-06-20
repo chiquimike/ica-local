@@ -91,6 +91,16 @@ document.addEventListener('DOMContentLoaded', () => {
     if (sessionStorage.getItem('token_ica')) {
         verificarAdminCMS(false);
     }
+
+    // CMS admin: al elegir una imagen, la subimos para la clave seleccionada
+    const fileInput = document.getElementById('cms-file-input');
+    if (fileInput) {
+        fileInput.addEventListener('change', function() {
+            const file = this.files[0];
+            if (file && cmsImgClaveActual) subirImagenCMS(cmsImgClaveActual, file);
+            this.value = '';
+        });
+    }
 });
 
 // =============================================================
@@ -112,8 +122,15 @@ function cargarContenidoCMS() {
                     el.textContent = valor; // override (textContent = seguro, sin inyeccion HTML)
                 }
             });
+            // Imagenes editables: el valor guardado es la URL de la imagen subida
+            document.querySelectorAll('[data-cms-img]').forEach(el => {
+                const valor = data[el.getAttribute('data-cms-img')];
+                if (valor) {
+                    el.src = (valor.indexOf('/imagenes/') === 0) ? (base + valor) : valor;
+                }
+            });
         })
-        .catch(() => { /* backend caido -> se quedan los textos por defecto */ });
+        .catch(() => { /* backend caido -> se quedan los textos/imagenes por defecto */ });
 }
 
 // =============================================================
@@ -146,6 +163,11 @@ function activarEdicionCMS() {
     document.querySelectorAll('[data-cms]').forEach(el => {
         el.setAttribute('contenteditable', 'true');
         el.classList.add('cms-editando');
+    });
+    // Imagenes: clic para reemplazar
+    document.querySelectorAll('[data-cms-img]').forEach(el => {
+        el.classList.add('cms-img-editando');
+        el.addEventListener('click', cmsClickImagen);
     });
     document.getElementById('btn-cms-editar').style.display = 'none';
     document.getElementById('btn-cms-guardar').style.display = 'inline-block';
@@ -187,7 +209,43 @@ function terminarEdicionCMS() {
         el.removeAttribute('contenteditable');
         el.classList.remove('cms-editando');
     });
+    document.querySelectorAll('[data-cms-img]').forEach(el => {
+        el.classList.remove('cms-img-editando');
+        el.removeEventListener('click', cmsClickImagen);
+    });
     document.getElementById('btn-cms-editar').style.display = 'inline-block';
     document.getElementById('btn-cms-guardar').style.display = 'none';
     document.getElementById('btn-cms-cancelar').style.display = 'none';
+}
+
+// === CMS: subida de imagenes ===
+let cmsImgClaveActual = null;
+
+function cmsClickImagen(e) {
+    cmsImgClaveActual = e.currentTarget.getAttribute('data-cms-img');
+    document.getElementById('cms-file-input').click();
+}
+
+function subirImagenCMS(clave, file) {
+    const token = sessionStorage.getItem('token_ica');
+    const base = (typeof window.API_BASE !== 'undefined') ? window.API_BASE : '';
+    const fd = new FormData();
+    fd.append('clave', clave);
+    fd.append('imagen', file);
+    fetch(base + '/contenido/imagen', {
+        method: 'POST',
+        headers: { 'Authorization': 'Bearer ' + token },
+        body: fd
+    })
+    .then(res => res.json())
+    .then(data => {
+        if (data.url) {
+            const el = document.querySelector('[data-cms-img="' + clave + '"]');
+            if (el) el.src = base + data.url + '?t=' + Date.now(); // cache-bust para ver el cambio
+            alert('Imagen actualizada ✅');
+        } else {
+            alert('Error: ' + (data.detail || data.detalle || 'no se pudo subir la imagen'));
+        }
+    })
+    .catch(() => alert('Fallo al subir la imagen.'));
 }

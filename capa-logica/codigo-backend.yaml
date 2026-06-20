@@ -25,6 +25,7 @@ data:
     import time
     import io
     import zipfile
+    import re
 
     app = FastAPI(title="API Gestión de Usuarios - ICA (Asegurada)")
 
@@ -54,12 +55,18 @@ data:
     CORREOS_ADMIN = [c.strip().lower() for c in os.getenv("CORREOS_ADMIN", "").split(",") if c.strip()]
 
     os.makedirs("/app/pdfs", exist_ok=True)
+    os.makedirs("/app/uploads", exist_ok=True)  # imagenes del CMS
 
     def ruta_pdf(nombre):
         # Sanitiza el nombre para evitar path traversal (ej. "../../etc/algo").
         # Nos quedamos solo con el nombre de archivo base, sin separadores de ruta.
         seguro = os.path.basename(str(nombre)).replace("\\", "").strip()
         return f"/app/pdfs/{seguro}.pdf"
+
+    def ruta_imagen(nombre):
+        # Misma sanitizacion para las imagenes del CMS (anti path traversal)
+        seguro = os.path.basename(str(nombre)).replace("\\", "").strip()
+        return f"/app/uploads/{seguro}"
 
     def get_db_connection():
         return pymysql.connect(
@@ -290,6 +297,45 @@ data:
         except Exception as e:
             print(f"[ERROR] {e}")
             return {"status": "Error", "detalle": "Ocurrió un error procesando la solicitud."}
+
+    @app.post("/contenido/imagen")
+    def subir_imagen(clave: str = Form(...), imagen: UploadFile = File(...), user_info: dict = Depends(verificar_admin)): # <--- Solo admin
+        # Sube una imagen, la guarda en el volumen y registra su URL como contenido[clave].
+        try:
+            ext = os.path.splitext(imagen.filename or "")[1].lower()
+            if ext not in [".jpg", ".jpeg", ".png", ".gif", ".webp"]:
+                return {"status": "Error", "detalle": "Formato no permitido (usa jpg, png, gif o webp)."}
+            datos = imagen.file.read()
+            if len(datos) > 2 * 1024 * 1024:
+                return {"status": "Error", "detalle": "La imagen excede 2 MB."}
+            # Nombre de archivo derivado de la clave (re-subir reemplaza, sin huerfanos)
+            base = re.sub(r"[^a-zA-Z0-9_-]", "_", clave)
+            nombre_archivo = base + ext
+            with open(ruta_imagen(nombre_archivo), "wb") as f:
+                f.write(datos)
+            url = f"/imagenes/{nombre_archivo}"
+            # Guardamos la URL como el valor de contenido para esa clave
+            conn = get_db_connection()
+            with conn.cursor() as cursor:
+                cursor.execute(
+                    "INSERT INTO contenido (clave, valor, seccion) VALUES (%s, %s, %s) "
+                    "ON DUPLICATE KEY UPDATE valor=VALUES(valor), seccion=COALESCE(VALUES(seccion), seccion)",
+                    (clave, url, clave.split(".")[0])
+                )
+            conn.commit()
+            conn.close()
+            return {"status": "Éxito", "url": url}
+        except Exception as e:
+            print(f"[ERROR] {e}")
+            return {"status": "Error", "detalle": "Ocurrió un error procesando la solicitud."}
+
+    @app.get("/imagenes/{nombre}")
+    def ver_imagen(nombre: str):
+        # Publico: sirve las imagenes subidas por el CMS
+        ruta = ruta_imagen(nombre)
+        if os.path.exists(ruta):
+            return FileResponse(ruta)
+        return {"Error": "Imagen no encontrada"}
 
     @app.get("/ver-pdf/{nombre}")
     def ver_pdf(nombre: str, user_info: dict = Depends(verificar_token)): # <--- Protegido
