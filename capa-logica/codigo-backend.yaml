@@ -156,6 +156,14 @@ data:
 
         return idinfo
 
+    # Gate mas estricto: solo administradores (correo en la lista CORREOS_ADMIN).
+    # Las cuentas del dominio pueden usar registro/panel, pero editar el CMS es solo admin.
+    def verificar_admin(user_info: dict = Depends(verificar_token)):
+        correo = user_info.get("email", "").lower()
+        if correo not in CORREOS_ADMIN:
+            raise HTTPException(status_code=403, detail="Requiere cuenta de administrador")
+        return user_info
+
     class UsuarioNuevo(BaseModel):
         numero_cuenta: str
         nombres: str
@@ -244,6 +252,11 @@ data:
 
     # === CMS: contenido editable de la landing ===
 
+    @app.get("/admin/check")
+    def admin_check(user_info: dict = Depends(verificar_admin)):
+        # Sirve para que el frontend sepa si la sesion actual es de administrador.
+        return {"ok": True, "correo": user_info.get("email", "")}
+
     @app.get("/contenido")
     def obtener_contenido():
         # Publico (la landing es publica). Devuelve los overrides como {clave: valor}.
@@ -260,7 +273,7 @@ data:
             return {}
 
     @app.put("/contenido")
-    def actualizar_contenido(items: List[ContenidoItem], user_info: dict = Depends(verificar_token)): # <--- Protegido
+    def actualizar_contenido(items: List[ContenidoItem], user_info: dict = Depends(verificar_admin)): # <--- Solo admin
         # Recibe una lista de campos y los inserta/actualiza (upsert).
         try:
             conn = get_db_connection()

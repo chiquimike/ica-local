@@ -31,7 +31,7 @@ spec:
         # Correos admin que pueden entrar aunque no sean @aragon.unam.mx (separados por coma)
         # Ej: "tucorreo@gmail.com,otroadmin@gmail.com"
         - name: CORREOS_ADMIN
-          value: ""
+          value: "miguelfuster47@aragon.unam.mx"
         resources:
           requests:
             memory: "64Mi"

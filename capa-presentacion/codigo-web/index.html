@@ -9,6 +9,22 @@
     <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;700&display=swap" rel="stylesheet">
     <!-- URL del backend segun el entorno (la define config.js, inyectado por Kustomize) -->
     <script src="config.js"></script>
+    <!-- Login de administrador (Google) para el CMS -->
+    <script src="https://accounts.google.com/gsi/client" async defer></script>
+    <style>
+      /* CMS - modo administrador */
+      #admin-toggle { cursor: pointer; opacity: .55; font-size: .8rem; }
+      #admin-login-box { display: none; position: fixed; bottom: 20px; right: 20px; z-index: 3000;
+        background: #fff; padding: 14px; border-radius: 8px; box-shadow: 0 4px 16px rgba(0,0,0,.25); }
+      #cms-toolbar { display: none; gap: 8px; position: fixed; bottom: 20px; right: 20px; z-index: 3000;
+        background: #fff; padding: 10px 14px; border-radius: 8px; box-shadow: 0 4px 16px rgba(0,0,0,.25); }
+      #cms-toolbar button { padding: 8px 14px; border: none; border-radius: 5px; cursor: pointer; font-weight: bold; color: #fff; }
+      .cms-btn-editar { background: #0056b3; }
+      .cms-btn-guardar { background: #28a745; }
+      .cms-btn-cancelar { background: #dc3545; }
+      [data-cms].cms-editando { outline: 2px dashed #0056b3; outline-offset: 3px;
+        background: rgba(0,86,179,.05); cursor: text; border-radius: 3px; }
+    </style>
 </head>
 <body>
 
@@ -564,7 +580,27 @@
             </ul>
         </div>
     </div>
+    <div style="text-align:center; padding:10px 0;">
+        <span id="admin-toggle">Administrar</span>
+    </div>
 </footer>
+
+    <!-- CMS: login de administrador (oculto hasta tocar "Administrar") -->
+    <div id="admin-login-box">
+        <p style="margin:0 0 8px; font-size:.85rem; font-weight:bold;">Acceso administrador</p>
+        <div id="g_id_onload"
+             data-client_id="374163159167-hj3aofouk0mae2ksk0qq5agevdlengfj.apps.googleusercontent.com"
+             data-callback="handleCredentialResponseCMS"
+             data-auto_prompt="false"></div>
+        <div class="g_id_signin" data-type="standard"></div>
+    </div>
+
+    <!-- CMS: barra de edicion (visible solo para admins) -->
+    <div id="cms-toolbar">
+        <button class="cms-btn-editar" id="btn-cms-editar" onclick="activarEdicionCMS()">Editar página</button>
+        <button class="cms-btn-guardar" id="btn-cms-guardar" onclick="guardarEdicionCMS()" style="display:none;">Guardar</button>
+        <button class="cms-btn-cancelar" id="btn-cms-cancelar" onclick="cancelarEdicionCMS()" style="display:none;">Cancelar</button>
+    </div>
 
     <script src="script.js"></script>
 </body>
