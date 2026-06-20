@@ -30,6 +30,25 @@
       body.cms-edicion .cms-galeria-del { display: inline-block; }
       #cms-galeria-form input, #cms-galeria-form select, #cms-galeria-form textarea {
         width: 100%; padding: 8px; margin-bottom: 10px; border: 1px solid #ccc; border-radius: 4px; box-sizing: border-box; }
+      /* Tarjeta de galeria compacta: la imagen es la protagonista */
+      .gallery-card .gallery-image { width: 100%; height: 230px; object-fit: cover; display: block; }
+      .gallery-card .card-info { padding: 14px; }
+      .gallery-card .card-info h3 { margin: 0 0 10px; }
+      /* Visor / lightbox de la galeria */
+      .gal-modal { display: none; position: fixed; inset: 0; background: rgba(0,0,0,.85);
+        z-index: 4000; justify-content: center; align-items: center; }
+      .gal-modal-content { background: #fff; border-radius: 8px; max-width: 680px; width: 92%;
+        max-height: 92vh; overflow: auto; padding-bottom: 16px; position: relative; }
+      .gal-modal-close { position: absolute; top: 6px; right: 12px; font-size: 30px; line-height: 1;
+        background: none; border: none; color: #fff; cursor: pointer; z-index: 2; text-shadow: 0 1px 4px rgba(0,0,0,.7); }
+      .gal-modal-img-wrap { position: relative; background: #000; }
+      .gal-modal-img-wrap img { width: 100%; max-height: 60vh; object-fit: contain; display: block; }
+      .gal-nav { position: absolute; top: 50%; transform: translateY(-50%); background: rgba(0,0,0,.4);
+        color: #fff; border: none; font-size: 34px; line-height: 1; padding: 4px 14px; cursor: pointer; }
+      .gal-prev { left: 0; } .gal-next { right: 0; }
+      .gal-modal-contador { text-align: center; color: #666; font-size: .85rem; padding-top: 8px; }
+      .gal-modal-content h3 { margin: 10px 20px 6px; }
+      .gal-modal-content p { margin: 0 20px; color: #444; }
     </style>
 </head>
 <body>
@@ -392,8 +411,9 @@
         </select>
         <input type="text" id="gal-titulo" placeholder="Título del proyecto">
         <textarea id="gal-desc" rows="2" placeholder="Descripción corta"></textarea>
-        <input type="file" id="gal-img" accept="image/*">
-        <button class="btn-unam" style="width:100%; cursor:pointer;" onclick="agregarProyectoGaleria()">Publicar proyecto</button>
+        <input type="file" id="gal-img" accept="image/*" multiple>
+        <small style="color:#666;">Puedes seleccionar hasta 5 imágenes (la 1ª será la portada).</small>
+        <button class="btn-unam" style="width:100%; cursor:pointer; margin-top:10px;" onclick="agregarProyectoGaleria()">Publicar proyecto</button>
     </div>
 
     <div class="ss-container gallery-container">
@@ -624,6 +644,21 @@
 
     <!-- CMS: selector de archivo (oculto) para subir imagenes -->
     <input type="file" id="cms-file-input" accept="image/*" style="display:none;">
+
+    <!-- Galeria: visor (lightbox) con carrusel de imagenes -->
+    <div id="galeria-modal" class="gal-modal" onclick="if(event.target === this) cerrarGaleriaModal()">
+        <div class="gal-modal-content">
+            <button class="gal-modal-close" onclick="cerrarGaleriaModal()">&times;</button>
+            <div class="gal-modal-img-wrap">
+                <button class="gal-nav gal-prev" onclick="galModalNav(-1)">&lsaquo;</button>
+                <img id="gal-modal-img" src="" alt="">
+                <button class="gal-nav gal-next" onclick="galModalNav(1)">&rsaquo;</button>
+            </div>
+            <div id="gal-modal-contador" class="gal-modal-contador"></div>
+            <h3 id="gal-modal-titulo"></h3>
+            <p id="gal-modal-desc"></p>
+        </div>
+    </div>
 
     <script src="script.js"></script>
 </body>

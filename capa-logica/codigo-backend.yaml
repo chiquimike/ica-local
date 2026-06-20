@@ -153,6 +153,15 @@ data:
                 "  archivo VARCHAR(255)"
                 ")"
             )
+            # CMS: varias imagenes por proyecto de la galeria
+            cursor.execute(
+                "CREATE TABLE IF NOT EXISTS galeria_imagenes ("
+                "  id INT AUTO_INCREMENT PRIMARY KEY,"
+                "  galeria_id INT NOT NULL,"
+                "  archivo VARCHAR(255),"
+                "  FOREIGN KEY (galeria_id) REFERENCES galeria(id) ON DELETE CASCADE"
+                ")"
+            )
         conn.commit()
         conn.close()
 
@@ -365,34 +374,53 @@ data:
 
     @app.get("/galeria")
     def obtener_galeria():
-        # Publico: lista de proyectos de la galeria
+        # Publico: cada proyecto con su lista de imagenes (la 1ra es la portada)
         try:
             conn = get_db_connection()
             with conn.cursor() as cursor:
                 cursor.execute("SELECT id, curso, titulo, descripcion, archivo FROM galeria ORDER BY curso, id")
                 items = cursor.fetchall()
+                cursor.execute("SELECT galeria_id, archivo FROM galeria_imagenes ORDER BY id")
+                filas = cursor.fetchall()
             conn.close()
+            por_proyecto = {}
+            for r in filas:
+                por_proyecto.setdefault(r["galeria_id"], []).append(r["archivo"])
+            for it in items:
+                imgs = por_proyecto.get(it["id"], [])
+                # Compatibilidad con proyectos viejos (una sola imagen en 'archivo')
+                if not imgs and it.get("archivo"):
+                    imgs = [it["archivo"]]
+                it["imagenes"] = imgs
             return items
         except Exception as e:
             print(f"[ERROR] {e}")
             return []
 
     @app.post("/galeria")
-    def agregar_galeria(curso: str = Form(...), titulo: str = Form(...), descripcion: str = Form(""), imagen: UploadFile = File(...), user_info: dict = Depends(verificar_admin)): # <--- Solo admin
+    def agregar_galeria(curso: str = Form(...), titulo: str = Form(...), descripcion: str = Form(""), imagenes: List[UploadFile] = File(...), user_info: dict = Depends(verificar_admin)): # <--- Solo admin
         try:
-            url, error = validar_y_guardar_imagen(imagen, "galeria_" + uuid.uuid4().hex)
-            if error:
-                return {"status": "Error", "detalle": error}
+            if len(imagenes) > 5:
+                return {"status": "Error", "detalle": "Máximo 5 imágenes por proyecto."}
+            urls = []
+            for img in imagenes:
+                url, error = validar_y_guardar_imagen(img, "galeria_" + uuid.uuid4().hex)
+                if error:
+                    return {"status": "Error", "detalle": error}
+                urls.append(url)
             conn = get_db_connection()
             with conn.cursor() as cursor:
+                # 'archivo' guarda la portada (1ra imagen) por compatibilidad
                 cursor.execute(
                     "INSERT INTO galeria (curso, titulo, descripcion, archivo) VALUES (%s, %s, %s, %s)",
-                    (curso, titulo, descripcion, url)
+                    (curso, titulo, descripcion, urls[0] if urls else None)
                 )
-                nuevo_id = cursor.lastrowid
+                gid = cursor.lastrowid
+                for u in urls:
+                    cursor.execute("INSERT INTO galeria_imagenes (galeria_id, archivo) VALUES (%s, %s)", (gid, u))
             conn.commit()
             conn.close()
-            return {"status": "Éxito", "item": {"id": nuevo_id, "curso": curso, "titulo": titulo, "descripcion": descripcion, "archivo": url}}
+            return {"status": "Éxito"}
         except Exception as e:
             print(f"[ERROR] {e}")
             return {"status": "Error", "detalle": "Ocurrió un error procesando la solicitud."}
@@ -402,12 +430,18 @@ data:
         try:
             conn = get_db_connection()
             with conn.cursor() as cursor:
+                # Borrar los archivos de todas las imagenes del proyecto
+                cursor.execute("SELECT archivo FROM galeria_imagenes WHERE galeria_id = %s", (item_id,))
+                rutas = [r["archivo"] for r in cursor.fetchall() if r.get("archivo")]
                 cursor.execute("SELECT archivo FROM galeria WHERE id = %s", (item_id,))
                 fila = cursor.fetchone()
                 if fila and fila.get("archivo"):
-                    ruta = ruta_imagen(os.path.basename(fila["archivo"]))
+                    rutas.append(fila["archivo"])
+                for a in rutas:
+                    ruta = ruta_imagen(os.path.basename(a))
                     if os.path.exists(ruta):
                         os.remove(ruta)
+                cursor.execute("DELETE FROM galeria_imagenes WHERE galeria_id = %s", (item_id,))
                 cursor.execute("DELETE FROM galeria WHERE id = %s", (item_id,))
             conn.commit()
             conn.close()

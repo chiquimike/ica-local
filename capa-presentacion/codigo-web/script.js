@@ -288,19 +288,22 @@ function cargarGaleriaCMS() {
 }
 
 function crearTarjetaGaleria(it, base) {
-    const url = (it.archivo && it.archivo.indexOf('/imagenes/') === 0) ? (base + it.archivo) : it.archivo;
+    const imgs = (it.imagenes && it.imagenes.length) ? it.imagenes : (it.archivo ? [it.archivo] : []);
+    const portada = imgs.length ? ((imgs[0].indexOf('/imagenes/') === 0) ? (base + imgs[0]) : imgs[0]) : '';
     const card = document.createElement('div');
     card.className = 'card-unam gallery-card';
     const img = document.createElement('img');
-    img.className = 'gallery-image'; img.src = url; img.alt = it.titulo || '';
+    img.className = 'gallery-image'; img.src = portada; img.alt = it.titulo || '';
     const info = document.createElement('div'); info.className = 'card-info';
     const h3 = document.createElement('h3'); h3.textContent = it.titulo || '';
-    const p = document.createElement('p'); p.textContent = it.descripcion || '';
-    const a = document.createElement('a'); a.className = 'btn-unam'; a.href = url; a.target = '_blank'; a.textContent = 'Ver Detalles';
+    // "Ver Detalles" abre el visor con todas las fotos + la descripcion
+    const ver = document.createElement('button');
+    ver.className = 'btn-unam'; ver.textContent = 'Ver Detalles';
+    ver.addEventListener('click', () => abrirGaleriaModal(it, base));
     const del = document.createElement('button');
     del.className = 'cms-galeria-del'; del.textContent = 'Quitar';
     del.addEventListener('click', () => eliminarProyectoGaleria(it.id));
-    info.appendChild(h3); info.appendChild(p); info.appendChild(a); info.appendChild(del);
+    info.appendChild(h3); info.appendChild(ver); info.appendChild(del);
     card.appendChild(img); card.appendChild(info);
     return card;
 }
@@ -309,13 +312,14 @@ function agregarProyectoGaleria() {
     const token = sessionStorage.getItem('token_ica');
     const base = (typeof window.API_BASE !== 'undefined') ? window.API_BASE : '';
     const titulo = document.getElementById('gal-titulo').value.trim();
-    const file = document.getElementById('gal-img').files[0];
-    if (!titulo || !file) { alert('Pon al menos título e imagen.'); return; }
+    const files = document.getElementById('gal-img').files;
+    if (!titulo || !files.length) { alert('Pon al menos título e imagen.'); return; }
+    if (files.length > 5) { alert('Máximo 5 imágenes por proyecto.'); return; }
     const fd = new FormData();
     fd.append('curso', document.getElementById('gal-curso').value);
     fd.append('titulo', titulo);
     fd.append('descripcion', document.getElementById('gal-desc').value.trim());
-    fd.append('imagen', file);
+    for (let i = 0; i < files.length; i++) fd.append('imagenes', files[i]);
     fetch(base + '/galeria', { method: 'POST', headers: { 'Authorization': 'Bearer ' + token }, body: fd })
     .then(res => res.json())
     .then(data => {
@@ -340,4 +344,38 @@ function eliminarProyectoGaleria(id) {
     .then(res => res.json())
     .then(() => cargarGaleriaCMS())
     .catch(() => alert('Fallo al eliminar.'));
+}
+
+// === Galeria: visor (lightbox) con carrusel ===
+let galModalImgs = [];
+let galModalIdx = 0;
+
+function abrirGaleriaModal(it, base) {
+    const imgs = (it.imagenes && it.imagenes.length) ? it.imagenes : (it.archivo ? [it.archivo] : []);
+    galModalImgs = imgs.map(u => (u.indexOf('/imagenes/') === 0) ? (base + u) : u);
+    galModalIdx = 0;
+    document.getElementById('gal-modal-titulo').textContent = it.titulo || '';
+    document.getElementById('gal-modal-desc').textContent = it.descripcion || '';
+    galModalRender();
+    document.getElementById('galeria-modal').style.display = 'flex';
+}
+
+function galModalRender() {
+    if (!galModalImgs.length) return;
+    document.getElementById('gal-modal-img').src = galModalImgs[galModalIdx];
+    const cont = document.getElementById('gal-modal-contador');
+    // Las flechas solo tienen sentido si hay mas de una imagen
+    const hayVarias = galModalImgs.length > 1;
+    document.querySelectorAll('.gal-nav').forEach(b => b.style.display = hayVarias ? 'block' : 'none');
+    cont.textContent = hayVarias ? ((galModalIdx + 1) + ' / ' + galModalImgs.length) : '';
+}
+
+function galModalNav(d) {
+    if (!galModalImgs.length) return;
+    galModalIdx = (galModalIdx + d + galModalImgs.length) % galModalImgs.length;
+    galModalRender();
+}
+
+function cerrarGaleriaModal() {
+    document.getElementById('galeria-modal').style.display = 'none';
 }
