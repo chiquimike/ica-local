@@ -25,6 +25,11 @@
       [data-cms].cms-editando { outline: 2px dashed #0056b3; outline-offset: 3px;
         background: rgba(0,86,179,.05); cursor: text; border-radius: 3px; }
       [data-cms-img].cms-img-editando { outline: 3px dashed #28a745; outline-offset: 3px; cursor: pointer; }
+      .cms-galeria-del { display: none; margin-top: 8px; background: #dc3545; color: #fff;
+        border: none; padding: 5px 12px; border-radius: 4px; cursor: pointer; }
+      body.cms-edicion .cms-galeria-del { display: inline-block; }
+      #cms-galeria-form input, #cms-galeria-form select, #cms-galeria-form textarea {
+        width: 100%; padding: 8px; margin-bottom: 10px; border: 1px solid #ccc; border-radius: 4px; box-sizing: border-box; }
     </style>
 </head>
 <body>
@@ -373,9 +378,23 @@
 <section id="galeria" class="content-section full-centered-section gallery-section">
     <div class="hero-text-container">
         <h1 class="section-title centered-text">Galería de Proyectos</h1>
-        <p class="subtitle centered-text">Un espacio de la comunidad ICA para la comunidad ICA. Explora las creaciones de tus compañeros organizadas por curso.</p>
+        <p class="subtitle centered-text">Un espacio de la comunidad ICA para la comunidad de la FES Aragón. Explora las creaciones de tus compañeros organizadas por curso.</p>
     </div>
 
+    <!-- CMS: formulario para agregar proyectos (solo visible en modo edicion de admin) -->
+    <div id="cms-galeria-form" class="card-unam" style="display:none; max-width:600px; margin:0 auto 40px; padding:20px; text-align:left;">
+        <h3 style="margin-top:0;">Agregar proyecto a la galería</h3>
+        <select id="gal-curso">
+            <option value="modelado-3d">Modelado 3D</option>
+            <option value="impresion-3d">Impresión 3D</option>
+            <option value="corte-laser">Corte Láser</option>
+            <option value="diseno-videojuegos">Diseño de Videojuegos</option>
+        </select>
+        <input type="text" id="gal-titulo" placeholder="Título del proyecto">
+        <textarea id="gal-desc" rows="2" placeholder="Descripción corta"></textarea>
+        <input type="file" id="gal-img" accept="image/*">
+        <button class="btn-unam" style="width:100%; cursor:pointer;" onclick="agregarProyectoGaleria()">Publicar proyecto</button>
+    </div>
 
     <div class="ss-container gallery-container">
         
@@ -588,7 +607,7 @@
 
     <!-- CMS: login de administrador (oculto hasta tocar "Administrar") -->
     <div id="admin-login-box">
-        <p style="margin:0 0 8px; font-size:.85rem; font-weight:bold;">Acceso administrador</p>
+        <p style="margin:0 0 8px; font-size:.85rem; font-weight:bold;">Acceso Administrador</p>
         <div id="g_id_onload"
              data-client_id="374163159167-hj3aofouk0mae2ksk0qq5agevdlengfj.apps.googleusercontent.com"
              data-callback="handleCredentialResponseCMS"

@@ -78,6 +78,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // CMS: cargar el contenido editable
     cargarContenidoCMS();
+    cargarGaleriaCMS();
 
     // CMS admin: el toggle "Administrar" muestra/oculta el login de Google
     const adminToggle = document.getElementById('admin-toggle');
@@ -169,6 +170,10 @@ function activarEdicionCMS() {
         el.classList.add('cms-img-editando');
         el.addEventListener('click', cmsClickImagen);
     });
+    // Galeria: mostrar el formulario de alta y los botones de borrar
+    document.body.classList.add('cms-edicion');
+    const galForm = document.getElementById('cms-galeria-form');
+    if (galForm) galForm.style.display = 'block';
     document.getElementById('btn-cms-editar').style.display = 'none';
     document.getElementById('btn-cms-guardar').style.display = 'inline-block';
     document.getElementById('btn-cms-cancelar').style.display = 'inline-block';
@@ -213,6 +218,9 @@ function terminarEdicionCMS() {
         el.classList.remove('cms-img-editando');
         el.removeEventListener('click', cmsClickImagen);
     });
+    document.body.classList.remove('cms-edicion');
+    const galForm = document.getElementById('cms-galeria-form');
+    if (galForm) galForm.style.display = 'none';
     document.getElementById('btn-cms-editar').style.display = 'inline-block';
     document.getElementById('btn-cms-guardar').style.display = 'none';
     document.getElementById('btn-cms-cancelar').style.display = 'none';
@@ -248,4 +256,88 @@ function subirImagenCMS(clave, file) {
         }
     })
     .catch(() => alert('Fallo al subir la imagen.'));
+}
+
+// =============================================================
+// 7. CMS — GALERIA DE PROYECTOS
+// =============================================================
+const CURSOS_GALERIA = ['modelado-3d', 'impresion-3d', 'corte-laser', 'diseno-videojuegos'];
+
+function cargarGaleriaCMS() {
+    const base = (typeof window.API_BASE !== 'undefined') ? window.API_BASE : '';
+    fetch(base + '/galeria')
+        .then(res => res.ok ? res.json() : [])
+        .then(items => {
+            if (!Array.isArray(items)) return;
+            CURSOS_GALERIA.forEach(curso => {
+                const grid = document.getElementById('grid-' + curso);
+                if (!grid) return;
+                grid.innerHTML = '';
+                const delCurso = items.filter(it => it.curso === curso);
+                if (delCurso.length === 0) {
+                    const vacio = document.createElement('p');
+                    vacio.style.color = '#888';
+                    vacio.textContent = 'Sin Proyectos Aún.';
+                    grid.appendChild(vacio);
+                    return;
+                }
+                delCurso.forEach(it => grid.appendChild(crearTarjetaGaleria(it, base)));
+            });
+        })
+        .catch(() => { /* backend caido -> se quedan los placeholders del HTML */ });
+}
+
+function crearTarjetaGaleria(it, base) {
+    const url = (it.archivo && it.archivo.indexOf('/imagenes/') === 0) ? (base + it.archivo) : it.archivo;
+    const card = document.createElement('div');
+    card.className = 'card-unam gallery-card';
+    const img = document.createElement('img');
+    img.className = 'gallery-image'; img.src = url; img.alt = it.titulo || '';
+    const info = document.createElement('div'); info.className = 'card-info';
+    const h3 = document.createElement('h3'); h3.textContent = it.titulo || '';
+    const p = document.createElement('p'); p.textContent = it.descripcion || '';
+    const a = document.createElement('a'); a.className = 'btn-unam'; a.href = url; a.target = '_blank'; a.textContent = 'Ver Detalles';
+    const del = document.createElement('button');
+    del.className = 'cms-galeria-del'; del.textContent = 'Quitar';
+    del.addEventListener('click', () => eliminarProyectoGaleria(it.id));
+    info.appendChild(h3); info.appendChild(p); info.appendChild(a); info.appendChild(del);
+    card.appendChild(img); card.appendChild(info);
+    return card;
+}
+
+function agregarProyectoGaleria() {
+    const token = sessionStorage.getItem('token_ica');
+    const base = (typeof window.API_BASE !== 'undefined') ? window.API_BASE : '';
+    const titulo = document.getElementById('gal-titulo').value.trim();
+    const file = document.getElementById('gal-img').files[0];
+    if (!titulo || !file) { alert('Pon al menos título e imagen.'); return; }
+    const fd = new FormData();
+    fd.append('curso', document.getElementById('gal-curso').value);
+    fd.append('titulo', titulo);
+    fd.append('descripcion', document.getElementById('gal-desc').value.trim());
+    fd.append('imagen', file);
+    fetch(base + '/galeria', { method: 'POST', headers: { 'Authorization': 'Bearer ' + token }, body: fd })
+    .then(res => res.json())
+    .then(data => {
+        if (data.status === 'Éxito') {
+            alert('Proyecto Publicado');
+            document.getElementById('gal-titulo').value = '';
+            document.getElementById('gal-desc').value = '';
+            document.getElementById('gal-img').value = '';
+            cargarGaleriaCMS();
+        } else {
+            alert('Error: ' + (data.detail || data.detalle || 'no se pudo publicar'));
+        }
+    })
+    .catch(() => alert('Fallo al conectar con el servidor.'));
+}
+
+function eliminarProyectoGaleria(id) {
+    if (!confirm('¿Quitar este proyecto de la galería?')) return;
+    const token = sessionStorage.getItem('token_ica');
+    const base = (typeof window.API_BASE !== 'undefined') ? window.API_BASE : '';
+    fetch(base + '/galeria/' + id, { method: 'DELETE', headers: { 'Authorization': 'Bearer ' + token } })
+    .then(res => res.json())
+    .then(() => cargarGaleriaCMS())
+    .catch(() => alert('Fallo al eliminar.'));
 }
