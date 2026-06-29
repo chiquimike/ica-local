@@ -79,6 +79,8 @@ document.addEventListener('DOMContentLoaded', () => {
     // CMS: cargar el contenido editable
     cargarContenidoCMS();
     cargarGaleriaCMS();
+    cargarHorariosCMS();
+    llenarHorasCMS();
 
     // CMS admin: el toggle "Administrar" muestra/oculta el login de Google
     const adminToggle = document.getElementById('admin-toggle');
@@ -174,6 +176,8 @@ function activarEdicionCMS() {
     document.body.classList.add('cms-edicion');
     const galForm = document.getElementById('cms-galeria-form');
     if (galForm) galForm.style.display = 'block';
+    const horForm = document.getElementById('cms-horario-form');
+    if (horForm) horForm.style.display = 'block';
     document.getElementById('btn-cms-editar').style.display = 'none';
     document.getElementById('btn-cms-guardar').style.display = 'inline-block';
     document.getElementById('btn-cms-cancelar').style.display = 'inline-block';
@@ -195,7 +199,7 @@ function guardarEdicionCMS() {
     .then(res => res.json())
     .then(data => {
         if (data.status === 'Éxito') {
-            alert('Cambios guardados ✅');
+            alert('Cambios Guardados');
             terminarEdicionCMS();
         } else {
             alert('Error: ' + (data.detail || data.detalle || 'no se pudo guardar'));
@@ -221,6 +225,8 @@ function terminarEdicionCMS() {
     document.body.classList.remove('cms-edicion');
     const galForm = document.getElementById('cms-galeria-form');
     if (galForm) galForm.style.display = 'none';
+    const horForm = document.getElementById('cms-horario-form');
+    if (horForm) horForm.style.display = 'none';
     document.getElementById('btn-cms-editar').style.display = 'inline-block';
     document.getElementById('btn-cms-guardar').style.display = 'none';
     document.getElementById('btn-cms-cancelar').style.display = 'none';
@@ -250,7 +256,7 @@ function subirImagenCMS(clave, file) {
         if (data.url) {
             const el = document.querySelector('[data-cms-img="' + clave + '"]');
             if (el) el.src = base + data.url + '?t=' + Date.now(); // cache-bust para ver el cambio
-            alert('Imagen actualizada ✅');
+            alert('Imagen Actualizada');
         } else {
             alert('Error: ' + (data.detail || data.detalle || 'no se pudo subir la imagen'));
         }
@@ -378,4 +384,148 @@ function galModalNav(d) {
 
 function cerrarGaleriaModal() {
     document.getElementById('galeria-modal').style.display = 'none';
+}
+
+// =============================================================
+// 8. CMS — HORARIOS (render dinamico de la rejilla)
+// =============================================================
+const HOR_DIAS = ['Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes'];
+const HOR_SALONES = ['CLOUD', 'CAPACITACION'];
+const HOR_INICIO = 7 * 60;   // 07:00 (en minutos)
+const HOR_FIN = 22 * 60;     // 22:00
+const HOR_PASO = 30;         // bloques de 30 min
+
+function horMin(hhmm) {
+    const p = (hhmm || '').split(':');
+    return (parseInt(p[0], 10) * 60) + parseInt(p[1] || '0', 10);
+}
+function horEtiqueta(min) {
+    const h = Math.floor(min / 60), m = min % 60;
+    return String(h).padStart(2, '0') + ':' + String(m).padStart(2, '0');
+}
+
+function cargarHorariosCMS() {
+    const base = (typeof window.API_BASE !== 'undefined') ? window.API_BASE : '';
+    fetch(base + '/horarios')
+        .then(res => res.ok ? res.json() : [])
+        .then(bloques => {
+            if (!Array.isArray(bloques)) bloques = [];
+            HOR_SALONES.forEach(salon => renderHorarioSalon(salon, bloques.filter(b => b.salon === salon)));
+        })
+        .catch(() => { HOR_SALONES.forEach(salon => renderHorarioSalon(salon, [])); });
+}
+
+function renderHorarioSalon(salon, bloques) {
+    const cont = document.getElementById('grid-horario-' + salon);
+    if (!cont) return;
+    const nSlots = (HOR_FIN - HOR_INICIO) / HOR_PASO;
+    // ocup[dia][slot]: {bloque, span} en el inicio del bloque, 'cubierto' en el resto, null = libre
+    const ocup = {};
+    HOR_DIAS.forEach(d => { ocup[d] = new Array(nSlots).fill(null); });
+    bloques.forEach(b => {
+        if (HOR_DIAS.indexOf(b.dia) === -1) return;
+        const ini = (horMin(b.hora_inicio) - HOR_INICIO) / HOR_PASO;
+        const fin = (horMin(b.hora_fin) - HOR_INICIO) / HOR_PASO;
+        if (isNaN(ini) || isNaN(fin) || ini < 0 || fin > nSlots || fin <= ini) return;
+        ocup[b.dia][ini] = { bloque: b, span: fin - ini };
+        for (let s = ini + 1; s < fin; s++) ocup[b.dia][s] = 'cubierto';
+    });
+    const tabla = document.createElement('table');
+    tabla.className = 'timetable unam-theme-table';
+    const thead = document.createElement('thead');
+    const trh = document.createElement('tr');
+    ['Hora'].concat(HOR_DIAS).forEach(t => { const th = document.createElement('th'); th.textContent = t; trh.appendChild(th); });
+    thead.appendChild(trh);
+    tabla.appendChild(thead);
+    const tbody = document.createElement('tbody');
+    for (let s = 0; s < nSlots; s++) {
+        const tr = document.createElement('tr');
+        const tdHora = document.createElement('td');
+        tdHora.textContent = horEtiqueta(HOR_INICIO + s * HOR_PASO);
+        tr.appendChild(tdHora);
+        HOR_DIAS.forEach(d => {
+            const cel = ocup[d][s];
+            if (cel === 'cubierto') return; // lo cubre el rowspan de arriba
+            const td = document.createElement('td');
+            if (cel && cel.bloque) {
+                if (cel.span > 1) td.rowSpan = cel.span;
+                const b = cel.bloque;
+                if (b.tipo === 'asesoria') td.className = 'asesoria';
+                td.appendChild(document.createTextNode(b.materia || ''));
+                if (b.profesor) {
+                    td.appendChild(document.createElement('br'));
+                    const bo = document.createElement('b');
+                    bo.textContent = '(' + b.profesor + ')';
+                    td.appendChild(bo);
+                }
+                // Boton borrar (visible solo en modo edicion)
+                const del = document.createElement('button');
+                del.className = 'cms-horario-del'; del.textContent = 'Quitar';
+                del.addEventListener('click', () => eliminarBloqueHorario(b.id));
+                td.appendChild(document.createElement('br'));
+                td.appendChild(del);
+            } else {
+                td.className = 'libre';
+                td.textContent = '    ';
+            }
+            tr.appendChild(td);
+        });
+        tbody.appendChild(tr);
+    }
+    tabla.appendChild(tbody);
+    cont.innerHTML = '';
+    cont.appendChild(tabla);
+}
+
+// === CMS: editor de horarios (agregar / borrar bloques) ===
+function llenarHorasCMS() {
+    const ini = document.getElementById('hor-inicio');
+    const fin = document.getElementById('hor-fin');
+    if (!ini || !fin || ini.options.length) return;
+    for (let m = HOR_INICIO; m <= HOR_FIN; m += HOR_PASO) {
+        const t = horEtiqueta(m);
+        ini.appendChild(new Option(t, t));
+        fin.appendChild(new Option(t, t));
+    }
+}
+
+function agregarBloqueHorario() {
+    const token = sessionStorage.getItem('token_ica');
+    const base = (typeof window.API_BASE !== 'undefined') ? window.API_BASE : '';
+    const materia = document.getElementById('hor-materia').value.trim();
+    if (!materia) { alert('Pon al menos la materia.'); return; }
+    const bloque = {
+        salon: document.getElementById('hor-salon').value,
+        dia: document.getElementById('hor-dia').value,
+        hora_inicio: document.getElementById('hor-inicio').value,
+        hora_fin: document.getElementById('hor-fin').value,
+        materia: materia,
+        profesor: document.getElementById('hor-profesor').value.trim(),
+        tipo: document.getElementById('hor-tipo').value
+    };
+    fetch(base + '/horarios', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + token },
+        body: JSON.stringify(bloque)
+    })
+    .then(res => res.json())
+    .then(data => {
+        if (data.status === 'Éxito') {
+            document.getElementById('hor-materia').value = '';
+            document.getElementById('hor-profesor').value = '';
+            cargarHorariosCMS();
+        } else {
+            alert('Error: ' + (data.detail || data.detalle || 'no se pudo agregar'));
+        }
+    })
+    .catch(() => alert('Fallo al conectar con el servidor.'));
+}
+
+function eliminarBloqueHorario(id) {
+    const token = sessionStorage.getItem('token_ica');
+    const base = (typeof window.API_BASE !== 'undefined') ? window.API_BASE : '';
+    fetch(base + '/horarios/' + id, { method: 'DELETE', headers: { 'Authorization': 'Bearer ' + token } })
+    .then(res => res.json())
+    .then(() => cargarHorariosCMS())
+    .catch(() => alert('Fallo al eliminar.'));
 }

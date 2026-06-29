@@ -162,6 +162,19 @@ data:
                 "  FOREIGN KEY (galeria_id) REFERENCES galeria(id) ON DELETE CASCADE"
                 ")"
             )
+            # CMS: horarios (cada fila = un bloque; "Libre" = ausencia de bloque)
+            cursor.execute(
+                "CREATE TABLE IF NOT EXISTS horarios ("
+                "  id INT AUTO_INCREMENT PRIMARY KEY,"
+                "  salon VARCHAR(50),"
+                "  dia VARCHAR(20),"
+                "  hora_inicio VARCHAR(5),"
+                "  hora_fin VARCHAR(5),"
+                "  materia VARCHAR(255),"
+                "  profesor VARCHAR(255),"
+                "  tipo VARCHAR(20)"
+                ")"
+            )
         conn.commit()
         conn.close()
 
@@ -222,6 +235,15 @@ data:
         clave: str
         valor: str
         seccion: Optional[str] = None
+
+    class HorarioNuevo(BaseModel):
+        salon: str
+        dia: str
+        hora_inicio: str
+        hora_fin: str
+        materia: str
+        profesor: Optional[str] = ""
+        tipo: Optional[str] = "clase"
 
     # Agregamos "Depends(verificar_token)" para proteger las rutas vitales
 
@@ -446,6 +468,54 @@ data:
             conn.commit()
             conn.close()
             return {"status": "Éxito", "mensaje": "Proyecto eliminado."}
+        except Exception as e:
+            print(f"[ERROR] {e}")
+            return {"status": "Error", "detalle": "Ocurrió un error procesando la solicitud."}
+
+    # === CMS: horarios ===
+
+    @app.get("/horarios")
+    def obtener_horarios():
+        # Publico: todos los bloques de horario (la rejilla se arma en el frontend)
+        try:
+            conn = get_db_connection()
+            with conn.cursor() as cursor:
+                cursor.execute("SELECT id, salon, dia, hora_inicio, hora_fin, materia, profesor, tipo FROM horarios ORDER BY salon, dia, hora_inicio")
+                bloques = cursor.fetchall()
+            conn.close()
+            return bloques
+        except Exception as e:
+            print(f"[ERROR] {e}")
+            return []
+
+    @app.post("/horarios")
+    def agregar_horario(bloque: HorarioNuevo, user_info: dict = Depends(verificar_admin)): # <--- Solo admin
+        try:
+            # Validacion basica: la hora fin debe ser mayor que la de inicio
+            if bloque.hora_fin <= bloque.hora_inicio:
+                return {"status": "Error", "detalle": "La hora de fin debe ser mayor que la de inicio."}
+            conn = get_db_connection()
+            with conn.cursor() as cursor:
+                cursor.execute(
+                    "INSERT INTO horarios (salon, dia, hora_inicio, hora_fin, materia, profesor, tipo) VALUES (%s, %s, %s, %s, %s, %s, %s)",
+                    (bloque.salon, bloque.dia, bloque.hora_inicio, bloque.hora_fin, bloque.materia, bloque.profesor, bloque.tipo)
+                )
+            conn.commit()
+            conn.close()
+            return {"status": "Éxito", "mensaje": "Bloque agregado."}
+        except Exception as e:
+            print(f"[ERROR] {e}")
+            return {"status": "Error", "detalle": "Ocurrió un error procesando la solicitud."}
+
+    @app.delete("/horarios/{bloque_id}")
+    def eliminar_horario(bloque_id: int, user_info: dict = Depends(verificar_admin)): # <--- Solo admin
+        try:
+            conn = get_db_connection()
+            with conn.cursor() as cursor:
+                cursor.execute("DELETE FROM horarios WHERE id = %s", (bloque_id,))
+            conn.commit()
+            conn.close()
+            return {"status": "Éxito", "mensaje": "Bloque eliminado."}
         except Exception as e:
             print(f"[ERROR] {e}")
             return {"status": "Error", "detalle": "Ocurrió un error procesando la solicitud."}

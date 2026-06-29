@@ -30,6 +30,13 @@
       body.cms-edicion .cms-galeria-del { display: inline-block; }
       #cms-galeria-form input, #cms-galeria-form select, #cms-galeria-form textarea {
         width: 100%; padding: 8px; margin-bottom: 10px; border: 1px solid #ccc; border-radius: 4px; box-sizing: border-box; }
+      #cms-horario-form input, #cms-horario-form select {
+        padding: 8px; margin-bottom: 10px; border: 1px solid #ccc; border-radius: 4px; box-sizing: border-box; }
+      #cms-horario-form input { width: 100%; }
+      #cms-horario-form select { flex: 1; min-width: 110px; }
+      .cms-horario-del { display: none; margin-top: 6px; background: #dc3545; color: #fff;
+        border: none; border-radius: 3px; padding: 1px 7px; cursor: pointer; font-size: .75rem; }
+      body.cms-edicion .cms-horario-del { display: inline-block; }
       /* Tarjeta de galeria compacta: la imagen es la protagonista */
       .gallery-card .gallery-image { width: 100%; height: 230px; object-fit: cover; display: block; }
       .gallery-card .card-info { padding: 14px; }
@@ -112,7 +119,31 @@
 <section id="horarios" class="content-section">
     <h1 class="section-title centered-text">Horarios Semestrales</h1>
     <p class="subtitle centered-text">Consulta los grupos disponibles.</p>
-    
+
+    <!-- CMS: formulario para agregar bloques (solo visible en modo edicion de admin) -->
+    <div id="cms-horario-form" class="card-unam" style="display:none; max-width:760px; margin:0 auto 30px; padding:20px; text-align:left;">
+        <h3 style="margin-top:0;">Agregar bloque al horario</h3>
+        <div style="display:flex; gap:10px; flex-wrap:wrap;">
+            <select id="hor-salon">
+                <option value="CLOUD">CLOUD</option>
+                <option value="CAPACITACION">Capacitación</option>
+            </select>
+            <select id="hor-dia">
+                <option>Lunes</option><option>Martes</option><option>Miércoles</option><option>Jueves</option><option>Viernes</option>
+            </select>
+            <select id="hor-inicio"></select>
+            <select id="hor-fin"></select>
+            <select id="hor-tipo">
+                <option value="clase">Clase</option>
+                <option value="asesoria">Asesoría</option>
+                <option value="laboratorio">Laboratorio</option>
+            </select>
+        </div>
+        <input type="text" id="hor-materia" placeholder="Materia">
+        <input type="text" id="hor-profesor" placeholder="Profesor (opcional)">
+        <button class="btn-unam" style="width:100%; cursor:pointer;" onclick="agregarBloqueHorario()">Agregar bloque</button>
+    </div>
+
     <div class="grid-layout">
         <div class="card card-unam">
             <div class="card card-classroom">
@@ -123,118 +154,7 @@
                 <h3>Horario</h3>
                 <p>Salón CLOUD (Capacidad: 30 alumnos)</p>
 
-                <div class="table-responsive">
-                    <table class="timetable unam-theme-table">
-                        <thead>
-                            <tr>
-                                <th>Hora</th>
-                                <th>Lunes</th>
-                                <th>Martes</th>
-                                <th>Miércoles</th>
-                                <th>Jueves</th>
-                                <th>Viernes</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            <tr>
-                                <td>07:00 - 09:00</td>
-                                <td rowspan="4" class="libre">Libre</td>
-                                <td rowspan="4">Redes de Computadoras <br><b>(Quintero C. J. Manuel)</b></td>
-                                <td rowspan="4" class="libre">Libre</td>
-                                <td rowspan="4">Redes de Computadoras <br><b>(Quintero C. J. Manuel)</b></td>
-                                <td rowspan="4" class="libre">Libre</td>
-                            </tr>
-                            <tr><td>07:30 - 08:00</td></tr>
-                            <tr><td>08:00 - 08:30</td></tr>
-                            <tr><td>08:30 - 09:00</td></tr>
-
-                            <tr>
-                                <td>09:00 - 10:30</td>
-                                <td rowspan="4" class="libre">Libre</td>
-                                <td rowspan="3">Redes de Computadoras 1 (1) <br><b>(Quintero C. J. Manuel)</b></td>
-                                <td rowspan="4" class="libre">Libre</td>
-                                <td rowspan="3">Redes de Computadoras <br><b>(Quintero C. J. Manuel)</b></td>
-                                <td rowspan="4" class="libre">Libre</td>
-                            </tr>
-                            <tr><td>09:30 - 10:00</td></tr>
-                            <tr><td>10:00 - 10:30</td></tr>
-                            <tr><td>10:30 - 11:00</td><td class="libre">Libre</td><td class="libre">Libre</td></tr>
-
-                            <tr>
-                                <td>11:00 - 13:00</td>
-                                <td rowspan="4">Programación Web <br><b>(Velasco A. Aaron)</b></td>
-                                <td rowspan="4">Seguridad Informática <br><b>(Hernández A. Leobardo)</b><br><br><span class="asesoria">Asesoría Ciencias Básicas</span></td>
-                                <td rowspan="4">Programación Web II <br><b>(Velasco A. Aaron)</b></td>
-                                <td rowspan="4">Seguridad Informática <br><b>(Hernández A. Leobardo)</b><br><br><span class="asesoria">Asesoría Ciencias Básicas</span></td>
-                                <td rowspan="4">Programación Web II <br><b>(Velasco A. Aaron)</b></td>
-                            </tr>
-                            <tr><td>11:30 - 12:00</td></tr>
-                            <tr><td>12:00 - 12:30</td></tr>
-                            <tr><td>12:30 - 13:00</td></tr>
-
-                            <tr>
-                                <td>13:00 - 14:20</td>
-                                <td rowspan="4" class="libre">Libre</td>
-                                <td rowspan="4">Redes II <br><b>(García G. Enrique)</b></td>
-                                <td rowspan="3">Programación Web II <br><b>(Candelario A. Jorge L.)</b></td>
-                                <td rowspan="4" class="libre">Libre</td>
-                                <td rowspan="3">Programación Web II <br><b>(Candelario A. Jorge L.)</b></td>
-                            </tr>
-                            <tr><td>13:30 - 14:00</td></tr>
-                            <tr><td>14:00 - 14:30</td></tr>
-                            <tr><td>14:30 - 15:00</td><td class="libre">Libre</td><td class="libre">Libre</td></tr>
-
-                            <tr>
-                                <td>15:00 - 16:20</td>
-                                <td rowspan="3">Prog. Videojuegos <br><b>(Candelario A. Jorge L.)</b></td>
-                                <td rowspan="6" class="libre">Libre</td>
-                                <td rowspan="3">Prog. Videojuegos <br><b>(Candelario A. Jorge L.)</b></td>
-                                <td rowspan="10">Lab. Redes I <br><b>(Torres R. Gerardo)</b> <br><small>(14:20 a 20:00)</small></td>
-                                <td rowspan="3">Prog. Videojuegos II <br><b>(Candelario A. Jorge L.)</b></td>
-                            </tr>
-                            <tr><td>15:30 - 16:00</td></tr>
-                            <tr><td>16:00 - 16:30</td></tr>
-                            <tr>
-                                <td>16:30 - 17:00</td>
-                                <td rowspan="7">Lab. Redes I <br><b>(Torres R. Gerardo)</b> <br><small>(15:30 a 20:00)</small></td>
-                                <td rowspan="4" class="libre">Libre</td>
-                                <td rowspan="7" class="libre">Libre</td>
-                            </tr>
-
-                            <tr>
-                                <td>17:00 - 18:30</td>
-                                <td rowspan="3" class="asesoria">Asesoría Ciencias Básicas</td>
-                                <td rowspan="3" class="asesoria">Asesoría Ciencias Básicas</td>
-                            </tr>
-                            <tr><td>17:30 - 18:00</td></tr>
-                            <tr>
-                                <td>18:00 - 18:30</td>
-                                <td rowspan="6">Redes II <br><b>(Mórquez Gerardo)</b> / <b>(Torres R. Gerardo)</b> <br><small>(18:00 a 21:00)</small></td>
-                            </tr>
-                            <tr><td>18:30 - 19:00</td><td class="libre">Libre</td><td class="libre">Libre</td></tr>
-                            <tr><td>19:00 - 19:30</td><td rowspan="4" class="libre">Libre</td><td rowspan="4" class="libre">Libre</td></tr>
-                            <tr><td>19:30 - 20:00</td></tr>
-
-                            <tr>
-                                <td>20:00 - 21:20</td>
-                                <td rowspan="3">Redes II <br><b>(Rodríguez Gerardo)</b></td>
-                                <td rowspan="2" class="libre">Libre</td>
-                                <td rowspan="3">Redes II <br><b>(Torrete R. Gerardo)</b></td>
-                                <td rowspan="3">Lab. Redes <br><b>(Tumiss Fernando)</b> / <b>(Torrés)</b></td>
-                            </tr>
-                            <tr><td>20:30 - 21:00</td></tr>
-                            <tr><td>21:00 - 21:30</td><td class="libre">Libre</td><td class="libre">Libre</td></tr>
-                            <tr>
-                                <td>21:30 - 22:00</td>
-                                <td class="libre">Libre</td>
-                                <td class="libre">Libre</td>
-                                <td class="libre">Libre</td>
-                                <td class="libre">Libre</td>
-                                <td class="libre">Libre</td>
-                            </tr>
-                        </tbody>
-                    </table>
-                </div>
+                <div class="table-responsive" id="grid-horario-CLOUD"></div>
             </div>
         </div>
 
@@ -247,64 +167,7 @@
                 <h3>Horario</h3>
                 <p>Aulas A-201 / A-202 (Capacidad: 8 alumnos)</p>
                 
-                <div class="table-responsive">
-                    <table class="timetable unam-theme-table">
-                        <thead>
-                            <tr>
-                                <th>Hora</th>
-                                <th>Lunes</th>
-                                <th>Martes</th>
-                                <th>Miércoles</th>
-                                <th>Jueves</th>
-                                <th>Viernes</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            <tr>
-                                <td>14:00 - 14:30</td>
-                                <td rowspan="2" class="libre">Libre</td>
-                                <td rowspan="2" class="libre">Libre</td>
-                                <td rowspan="6">Formulación y Evaluación de Proyectos <br><b>(Jocelyn Sequera A.)</b> <br><small>14:00 a 17:00</small></td>
-                                <td class="libre">Libre</td>
-                                <td rowspan="2" class="libre">Libre</td>
-                            </tr>
-                            <tr>
-                                <td>14:30 - 15:00</td>
-                                <td rowspan="4">Formulación y Evaluación de Proyectos <br><b>(Jocelyn Sequera)</b> <br><small>14:30 a 16:30</small></td>
-                            </tr>
-                            <tr>
-                                <td>15:00 - 15:30</td>
-                                <td rowspan="8">Crédito y Financiamiento Agropecuario <br><b>(Marcelino Miranda H.)</b> <br><small>15:00 a 19:00</small></td>
-                                <td rowspan="6">Derecho Mercantil <br><b>(María Isabel Orozco L.)</b> <br><small>15:00 a 18:00</small></td>
-                                <td rowspan="10" class="libre">Libre</td>
-                            </tr>
-                            <tr><td>15:30 - 16:00</td></tr>
-                            <tr><td>16:00 - 16:30</td></tr>
-                            <tr><td>16:30 - 17:00</td><td class="libre">Libre</td></tr>
-                            <tr><td>17:00 - 17:30</td><td rowspan="8" class="libre">Libre</td><td rowspan="10" class="libre">Libre</td></tr>
-                            <tr><td>17:30 - 18:00</td></tr>
-                            <tr><td>18:00 - 18:30</td><td rowspan="7" class="libre">Libre</td></tr>
-                            <tr><td>18:30 - 19:00</td></tr>
-                            <tr><td>19:00 - 19:30</td><td class="libre">Libre</td></tr>
-                            <tr><td>19:30 - 20:00</td><td class="libre">Libre</td></tr>
-                            
-                            <tr>
-                                <td>20:00 - 20:30</td>
-                                <td rowspan="4" class="libre">Libre</td>
-                                <td rowspan="3">Juan Manuel <br><b>(López Carreto J. M.)</b> <br><small>20:00-21:30</small></td>
-                                <td rowspan="3">López Carreto Juan Manuel <br><small>20:00 a 21:30</small></td>
-                            </tr>
-                            <tr><td>20:30 - 21:00</td></tr>
-                            <tr><td>21:00 - 21:30</td><td class="libre">Libre</td></tr>
-                            <tr>
-                                <td>21:30 - 22:00</td>
-                                <td class="libre">Libre</td>
-                                <td>López Carreto Juan Manuel <br><small>21:00 a 22:00</small></td>
-                                <td class="libre">Libre</td>
-                            </tr>
-                        </tbody>
-                    </table>
-                </div>
+                <div class="table-responsive" id="grid-horario-CAPACITACION"></div>
             </div>
         </div>
     </div>
