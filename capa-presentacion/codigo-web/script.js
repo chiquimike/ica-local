@@ -476,7 +476,7 @@ function renderHorarioSalon(salon, bloques) {
                 td.appendChild(del);
             } else {
                 td.className = 'libre';
-                td.textContent = 'Libre';
+                td.textContent = ' ';
             }
             tr.appendChild(td);
         });
