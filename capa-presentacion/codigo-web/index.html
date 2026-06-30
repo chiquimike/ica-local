@@ -22,6 +22,7 @@
       .cms-btn-editar { background: #0056b3; }
       .cms-btn-guardar { background: #28a745; }
       .cms-btn-cancelar { background: #dc3545; }
+      .cms-btn-respaldo { background: #555; }
       [data-cms].cms-editando { outline: 2px dashed #0056b3; outline-offset: 3px;
         background: rgba(0,86,179,.05); cursor: text; border-radius: 3px; }
       [data-cms-img].cms-img-editando { outline: 3px dashed #28a745; outline-offset: 3px; cursor: pointer; }
@@ -87,7 +88,7 @@
         <li><a href="#" id="btn-inicio" class="active" onclick="showSection('inicio')">Inicio</a></li>
         <li><a href="#" id="btn-cursos" onclick="showSection('cursos')">Cursos</a></li>
         <li><a href="#" id="btn-servicios" onclick="showSection('servicios')">Servicios</a></li> 
-        <li><a href="#" id="btn-Galeria" onclick="showSection('galeria')">Galeria</a></li>
+        <li><a href="#" id="btn-Galeria" onclick="showSection('galeria')">Galería</a></li>
         <li><a href="#" id="btn-horarios" onclick="showSection('horarios')">Horarios</a></li>
         <li><a href="#" id="btn-servicio" onclick="showSection('servicio social')">Servicio Social</a></li> </ul>
 </nav>
@@ -122,7 +123,7 @@
 
     <!-- CMS: formulario para agregar bloques (solo visible en modo edicion de admin) -->
     <div id="cms-horario-form" class="card-unam" style="display:none; max-width:760px; margin:0 auto 30px; padding:20px; text-align:left;">
-        <h3 style="margin-top:0;">Agregar bloque al horario</h3>
+        <h3 style="margin-top:0;">Agregar Bloque al Horario</h3>
         <div style="display:flex; gap:10px; flex-wrap:wrap;">
             <select id="hor-salon">
                 <option value="CLOUD">CLOUD</option>
@@ -265,7 +266,7 @@
 
     <!-- CMS: formulario para agregar proyectos (solo visible en modo edicion de admin) -->
     <div id="cms-galeria-form" class="card-unam" style="display:none; max-width:600px; margin:0 auto 40px; padding:20px; text-align:left;">
-        <h3 style="margin-top:0;">Agregar proyecto a la galería</h3>
+        <h3 style="margin-top:0;">Agregar proyecto a la Galería</h3>
         <select id="gal-curso">
             <option value="modelado-3d">Modelado 3D</option>
             <option value="impresion-3d">Impresión 3D</option>
@@ -503,10 +504,14 @@
         <button class="cms-btn-editar" id="btn-cms-editar" onclick="activarEdicionCMS()">Editar página</button>
         <button class="cms-btn-guardar" id="btn-cms-guardar" onclick="guardarEdicionCMS()" style="display:none;">Guardar</button>
         <button class="cms-btn-cancelar" id="btn-cms-cancelar" onclick="cancelarEdicionCMS()" style="display:none;">Cancelar</button>
+        <button class="cms-btn-respaldo" onclick="descargarRespaldoCMS()">Respaldo</button>
+        <button class="cms-btn-respaldo" onclick="document.getElementById('cms-respaldo-input').click()">Restaurar</button>
     </div>
 
     <!-- CMS: selector de archivo (oculto) para subir imagenes -->
     <input type="file" id="cms-file-input" accept="image/*" style="display:none;">
+    <!-- CMS: selector del archivo de respaldo (.zip) -->
+    <input type="file" id="cms-respaldo-input" accept=".zip" style="display:none;">
 
     <!-- Galeria: visor (lightbox) con carrusel de imagenes -->
     <div id="galeria-modal" class="gal-modal" onclick="if(event.target === this) cerrarGaleriaModal()">

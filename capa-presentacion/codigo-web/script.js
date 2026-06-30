@@ -104,6 +104,16 @@ document.addEventListener('DOMContentLoaded', () => {
             this.value = '';
         });
     }
+
+    // CMS admin: al elegir un archivo de respaldo, restauramos
+    const respaldoInput = document.getElementById('cms-respaldo-input');
+    if (respaldoInput) {
+        respaldoInput.addEventListener('change', function() {
+            const file = this.files[0];
+            if (file) restaurarRespaldoCMS(file);
+            this.value = '';
+        });
+    }
 });
 
 // =============================================================
@@ -199,7 +209,7 @@ function guardarEdicionCMS() {
     .then(res => res.json())
     .then(data => {
         if (data.status === 'Éxito') {
-            alert('Cambios Guardados');
+            alert('Cambios guardados ✅');
             terminarEdicionCMS();
         } else {
             alert('Error: ' + (data.detail || data.detalle || 'no se pudo guardar'));
@@ -256,7 +266,7 @@ function subirImagenCMS(clave, file) {
         if (data.url) {
             const el = document.querySelector('[data-cms-img="' + clave + '"]');
             if (el) el.src = base + data.url + '?t=' + Date.now(); // cache-bust para ver el cambio
-            alert('Imagen Actualizada');
+            alert('Imagen actualizada ✅');
         } else {
             alert('Error: ' + (data.detail || data.detalle || 'no se pudo subir la imagen'));
         }
@@ -466,7 +476,7 @@ function renderHorarioSalon(salon, bloques) {
                 td.appendChild(del);
             } else {
                 td.className = 'libre';
-                td.textContent = '    ';
+                td.textContent = 'Libre';
             }
             tr.appendChild(td);
         });
@@ -528,4 +538,40 @@ function eliminarBloqueHorario(id) {
     .then(res => res.json())
     .then(() => cargarHorariosCMS())
     .catch(() => alert('Fallo al eliminar.'));
+}
+
+// =============================================================
+// 9. CMS — RESPALDO (exportar / restaurar)
+// =============================================================
+function descargarRespaldoCMS() {
+    const token = sessionStorage.getItem('token_ica');
+    const base = (typeof window.API_BASE !== 'undefined') ? window.API_BASE : '';
+    fetch(base + '/respaldo', { headers: { 'Authorization': 'Bearer ' + token } })
+    .then(res => { if (!res.ok) throw new Error('No autorizado'); return res.blob(); })
+    .then(blob => {
+        const url = window.URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url; a.download = 'cms-respaldo.zip'; a.click();
+        window.URL.revokeObjectURL(url);
+    })
+    .catch(() => alert('No se pudo descargar el respaldo.'));
+}
+
+function restaurarRespaldoCMS(file) {
+    if (!confirm('Esto REEMPLAZA todo el contenido actual del CMS por el del respaldo. ¿Continuar?')) return;
+    const token = sessionStorage.getItem('token_ica');
+    const base = (typeof window.API_BASE !== 'undefined') ? window.API_BASE : '';
+    const fd = new FormData();
+    fd.append('archivo', file);
+    fetch(base + '/respaldo', { method: 'POST', headers: { 'Authorization': 'Bearer ' + token }, body: fd })
+    .then(res => res.json())
+    .then(data => {
+        if (data.status === 'Éxito') {
+            alert('Respaldo restaurado.');
+            location.reload();
+        } else {
+            alert('Error: ' + (data.detail || data.detalle || 'no se pudo restaurar'));
+        }
+    })
+    .catch(() => alert('Fallo al restaurar el respaldo.'));
 }

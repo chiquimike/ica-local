@@ -27,6 +27,7 @@ data:
     import zipfile
     import re
     import uuid
+    import json
 
     app = FastAPI(title="API Gestión de Usuarios - ICA (Asegurada)")
 
@@ -516,6 +517,82 @@ data:
             conn.commit()
             conn.close()
             return {"status": "Éxito", "mensaje": "Bloque eliminado."}
+        except Exception as e:
+            print(f"[ERROR] {e}")
+            return {"status": "Error", "detalle": "Ocurrió un error procesando la solicitud."}
+
+    # === CMS: respaldo completo (exportar / importar) ===
+
+    @app.get("/respaldo")
+    def exportar_respaldo(user_info: dict = Depends(verificar_admin)): # <--- Solo admin
+        # Devuelve un ZIP con todo el contenido del CMS (datos.json) + las imagenes del volumen.
+        try:
+            conn = get_db_connection()
+            with conn.cursor() as cursor:
+                cursor.execute("SELECT clave, valor, seccion FROM contenido")
+                contenido = cursor.fetchall()
+                cursor.execute("SELECT id, curso, titulo, descripcion, archivo FROM galeria")
+                galeria = cursor.fetchall()
+                cursor.execute("SELECT id, galeria_id, archivo FROM galeria_imagenes")
+                galeria_imagenes = cursor.fetchall()
+                cursor.execute("SELECT id, salon, dia, hora_inicio, hora_fin, materia, profesor, tipo FROM horarios")
+                horarios = cursor.fetchall()
+            conn.close()
+            datos = {"contenido": contenido, "galeria": galeria, "galeria_imagenes": galeria_imagenes, "horarios": horarios}
+            buffer = io.BytesIO()
+            with zipfile.ZipFile(buffer, "w", zipfile.ZIP_DEFLATED) as zf:
+                zf.writestr("datos.json", json.dumps(datos, ensure_ascii=False, default=str))
+                if os.path.isdir("/app/uploads"):
+                    for nombre in os.listdir("/app/uploads"):
+                        ruta = os.path.join("/app/uploads", nombre)
+                        if os.path.isfile(ruta):
+                            zf.write(ruta, "uploads/" + nombre)
+            buffer.seek(0)
+            return StreamingResponse(
+                buffer,
+                media_type="application/zip",
+                headers={"Content-Disposition": "attachment; filename=cms-respaldo.zip"}
+            )
+        except Exception as e:
+            print(f"[ERROR] {e}")
+            return {"status": "Error", "detalle": "Ocurrió un error procesando la solicitud."}
+
+    @app.post("/respaldo")
+    def importar_respaldo(archivo: UploadFile = File(...), user_info: dict = Depends(verificar_admin)): # <--- Solo admin
+        # OJO: REEMPLAZA todo el contenido actual del CMS por el del respaldo.
+        try:
+            buffer = io.BytesIO(archivo.file.read())
+            with zipfile.ZipFile(buffer, "r") as zf:
+                datos = json.loads(zf.read("datos.json").decode("utf-8"))
+                # Restaurar las imagenes al volumen
+                for nombre in zf.namelist():
+                    if nombre.startswith("uploads/") and not nombre.endswith("/"):
+                        base = os.path.basename(nombre)
+                        if base:
+                            with open(ruta_imagen(base), "wb") as f:
+                                f.write(zf.read(nombre))
+            conn = get_db_connection()
+            with conn.cursor() as cursor:
+                # Limpiar (respetando las llaves foraneas) y reinsertar
+                cursor.execute("DELETE FROM galeria_imagenes")
+                cursor.execute("DELETE FROM galeria")
+                cursor.execute("DELETE FROM horarios")
+                cursor.execute("DELETE FROM contenido")
+                for c in datos.get("contenido", []):
+                    cursor.execute("INSERT INTO contenido (clave, valor, seccion) VALUES (%s, %s, %s)",
+                                   (c["clave"], c.get("valor"), c.get("seccion")))
+                for g in datos.get("galeria", []):
+                    cursor.execute("INSERT INTO galeria (id, curso, titulo, descripcion, archivo) VALUES (%s, %s, %s, %s, %s)",
+                                   (g["id"], g.get("curso"), g.get("titulo"), g.get("descripcion"), g.get("archivo")))
+                for gi in datos.get("galeria_imagenes", []):
+                    cursor.execute("INSERT INTO galeria_imagenes (id, galeria_id, archivo) VALUES (%s, %s, %s)",
+                                   (gi["id"], gi["galeria_id"], gi.get("archivo")))
+                for ho in datos.get("horarios", []):
+                    cursor.execute("INSERT INTO horarios (id, salon, dia, hora_inicio, hora_fin, materia, profesor, tipo) VALUES (%s, %s, %s, %s, %s, %s, %s, %s)",
+                                   (ho["id"], ho.get("salon"), ho.get("dia"), ho.get("hora_inicio"), ho.get("hora_fin"), ho.get("materia"), ho.get("profesor"), ho.get("tipo")))
+            conn.commit()
+            conn.close()
+            return {"status": "Éxito", "mensaje": "Respaldo restaurado."}
         except Exception as e:
             print(f"[ERROR] {e}")
             return {"status": "Error", "detalle": "Ocurrió un error procesando la solicitud."}
