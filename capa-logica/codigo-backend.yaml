@@ -176,6 +176,14 @@ data:
                 "  tipo VARCHAR(20)"
                 ")"
             )
+            # CMS: carrusel del Inicio (varias imagenes)
+            cursor.execute(
+                "CREATE TABLE IF NOT EXISTS carrusel ("
+                "  id INT AUTO_INCREMENT PRIMARY KEY,"
+                "  archivo VARCHAR(255),"
+                "  orden INT DEFAULT 0"
+                ")"
+            )
         conn.commit()
         conn.close()
 
@@ -473,6 +481,57 @@ data:
             print(f"[ERROR] {e}")
             return {"status": "Error", "detalle": "Ocurrió un error procesando la solicitud."}
 
+    # === CMS: carrusel del Inicio ===
+
+    @app.get("/carrusel")
+    def obtener_carrusel():
+        # Publico: las imagenes del carrusel del Inicio
+        try:
+            conn = get_db_connection()
+            with conn.cursor() as cursor:
+                cursor.execute("SELECT id, archivo FROM carrusel ORDER BY orden, id")
+                imagenes = cursor.fetchall()
+            conn.close()
+            return imagenes
+        except Exception as e:
+            print(f"[ERROR] {e}")
+            return []
+
+    @app.post("/carrusel")
+    def agregar_carrusel(imagen: UploadFile = File(...), user_info: dict = Depends(verificar_admin)): # <--- Solo admin
+        try:
+            url, error = validar_y_guardar_imagen(imagen, "carrusel_" + uuid.uuid4().hex)
+            if error:
+                return {"status": "Error", "detalle": error}
+            conn = get_db_connection()
+            with conn.cursor() as cursor:
+                cursor.execute("INSERT INTO carrusel (archivo) VALUES (%s)", (url,))
+            conn.commit()
+            conn.close()
+            return {"status": "Éxito", "url": url}
+        except Exception as e:
+            print(f"[ERROR] {e}")
+            return {"status": "Error", "detalle": "Ocurrió un error procesando la solicitud."}
+
+    @app.delete("/carrusel/{item_id}")
+    def eliminar_carrusel(item_id: int, user_info: dict = Depends(verificar_admin)): # <--- Solo admin
+        try:
+            conn = get_db_connection()
+            with conn.cursor() as cursor:
+                cursor.execute("SELECT archivo FROM carrusel WHERE id = %s", (item_id,))
+                fila = cursor.fetchone()
+                if fila and fila.get("archivo"):
+                    ruta = ruta_imagen(os.path.basename(fila["archivo"]))
+                    if os.path.exists(ruta):
+                        os.remove(ruta)
+                cursor.execute("DELETE FROM carrusel WHERE id = %s", (item_id,))
+            conn.commit()
+            conn.close()
+            return {"status": "Éxito", "mensaje": "Imagen eliminada."}
+        except Exception as e:
+            print(f"[ERROR] {e}")
+            return {"status": "Error", "detalle": "Ocurrió un error procesando la solicitud."}
+
     # === CMS: horarios ===
 
     @app.get("/horarios")
@@ -537,8 +596,10 @@ data:
                 galeria_imagenes = cursor.fetchall()
                 cursor.execute("SELECT id, salon, dia, hora_inicio, hora_fin, materia, profesor, tipo FROM horarios")
                 horarios = cursor.fetchall()
+                cursor.execute("SELECT id, archivo, orden FROM carrusel")
+                carrusel = cursor.fetchall()
             conn.close()
-            datos = {"contenido": contenido, "galeria": galeria, "galeria_imagenes": galeria_imagenes, "horarios": horarios}
+            datos = {"contenido": contenido, "galeria": galeria, "galeria_imagenes": galeria_imagenes, "horarios": horarios, "carrusel": carrusel}
             buffer = io.BytesIO()
             with zipfile.ZipFile(buffer, "w", zipfile.ZIP_DEFLATED) as zf:
                 zf.writestr("datos.json", json.dumps(datos, ensure_ascii=False, default=str))
@@ -578,6 +639,7 @@ data:
                 cursor.execute("DELETE FROM galeria")
                 cursor.execute("DELETE FROM horarios")
                 cursor.execute("DELETE FROM contenido")
+                cursor.execute("DELETE FROM carrusel")
                 for c in datos.get("contenido", []):
                     cursor.execute("INSERT INTO contenido (clave, valor, seccion) VALUES (%s, %s, %s)",
                                    (c["clave"], c.get("valor"), c.get("seccion")))
@@ -590,6 +652,9 @@ data:
                 for ho in datos.get("horarios", []):
                     cursor.execute("INSERT INTO horarios (id, salon, dia, hora_inicio, hora_fin, materia, profesor, tipo) VALUES (%s, %s, %s, %s, %s, %s, %s, %s)",
                                    (ho["id"], ho.get("salon"), ho.get("dia"), ho.get("hora_inicio"), ho.get("hora_fin"), ho.get("materia"), ho.get("profesor"), ho.get("tipo")))
+                for ca in datos.get("carrusel", []):
+                    cursor.execute("INSERT INTO carrusel (id, archivo, orden) VALUES (%s, %s, %s)",
+                                   (ca["id"], ca.get("archivo"), ca.get("orden", 0)))
             conn.commit()
             conn.close()
             return {"status": "Éxito", "mensaje": "Respaldo restaurado."}

@@ -81,6 +81,7 @@ document.addEventListener('DOMContentLoaded', () => {
     cargarGaleriaCMS();
     cargarHorariosCMS();
     llenarHorasCMS();
+    cargarCarruselCMS();
 
     // CMS admin: el toggle "Administrar" muestra/oculta el login de Google
     const adminToggle = document.getElementById('admin-toggle');
@@ -188,6 +189,8 @@ function activarEdicionCMS() {
     if (galForm) galForm.style.display = 'block';
     const horForm = document.getElementById('cms-horario-form');
     if (horForm) horForm.style.display = 'block';
+    const carrAdmin = document.getElementById('cms-carrusel-admin');
+    if (carrAdmin) carrAdmin.style.display = 'block';
     document.getElementById('btn-cms-editar').style.display = 'none';
     document.getElementById('btn-cms-guardar').style.display = 'inline-block';
     document.getElementById('btn-cms-cancelar').style.display = 'inline-block';
@@ -237,6 +240,8 @@ function terminarEdicionCMS() {
     if (galForm) galForm.style.display = 'none';
     const horForm = document.getElementById('cms-horario-form');
     if (horForm) horForm.style.display = 'none';
+    const carrAdmin = document.getElementById('cms-carrusel-admin');
+    if (carrAdmin) carrAdmin.style.display = 'none';
     document.getElementById('btn-cms-editar').style.display = 'inline-block';
     document.getElementById('btn-cms-guardar').style.display = 'none';
     document.getElementById('btn-cms-cancelar').style.display = 'none';
@@ -574,4 +579,106 @@ function restaurarRespaldoCMS(file) {
         }
     })
     .catch(() => alert('Fallo al restaurar el respaldo.'));
+}
+
+// =============================================================
+// 10. CMS — CARRUSEL DEL INICIO
+// =============================================================
+let heroImgs = [];
+let heroIdx = 0;
+let heroInterval = null;
+
+function cargarCarruselCMS() {
+    const base = (typeof window.API_BASE !== 'undefined') ? window.API_BASE : '';
+    fetch(base + '/carrusel')
+        .then(res => res.ok ? res.json() : [])
+        .then(items => {
+            if (!Array.isArray(items)) items = [];
+            heroImgs = items.map(it => ({
+                id: it.id,
+                url: (it.archivo && it.archivo.indexOf('/imagenes/') === 0) ? (base + it.archivo) : it.archivo
+            }));
+            heroIdx = 0;
+            heroRender();
+            renderCarruselAdmin();
+        })
+        .catch(() => { /* backend caido -> se queda la imagen por defecto del HTML */ });
+}
+
+function heroRender() {
+    const img = document.getElementById('hero-carousel-img');
+    const dots = document.getElementById('hero-dots');
+    const navs = document.querySelectorAll('#hero-carousel .hero-nav');
+    if (heroInterval) { clearInterval(heroInterval); heroInterval = null; }
+    if (!heroImgs.length) {
+        navs.forEach(n => n.style.display = 'none');
+        if (dots) dots.innerHTML = '';
+        return;
+    }
+    if (heroIdx >= heroImgs.length) heroIdx = 0;
+    if (img) img.src = heroImgs[heroIdx].url;
+    const varias = heroImgs.length > 1;
+    navs.forEach(n => n.style.display = varias ? 'block' : 'none');
+    if (dots) {
+        dots.innerHTML = '';
+        heroImgs.forEach((_, i) => {
+            const s = document.createElement('span');
+            if (i === heroIdx) s.className = 'activo';
+            s.addEventListener('click', () => { heroIdx = i; heroRender(); });
+            dots.appendChild(s);
+        });
+    }
+    if (varias) heroInterval = setInterval(() => heroNav(1), 4500);
+}
+
+function heroNav(d) {
+    if (!heroImgs.length) return;
+    heroIdx = (heroIdx + d + heroImgs.length) % heroImgs.length;
+    heroRender();
+}
+
+function renderCarruselAdmin() {
+    const cont = document.getElementById('carrusel-admin-list');
+    if (!cont) return;
+    cont.innerHTML = '';
+    heroImgs.forEach(it => {
+        const wrap = document.createElement('div');
+        wrap.style.display = 'inline-block'; wrap.style.textAlign = 'center';
+        const im = document.createElement('img'); im.src = it.url;
+        const del = document.createElement('button');
+        del.className = 'cms-carrusel-del'; del.textContent = 'Quitar';
+        del.addEventListener('click', () => eliminarImagenCarrusel(it.id));
+        wrap.appendChild(im); wrap.appendChild(document.createElement('br')); wrap.appendChild(del);
+        cont.appendChild(wrap);
+    });
+}
+
+function agregarImagenCarrusel() {
+    const input = document.getElementById('carrusel-img-input');
+    const file = input.files[0];
+    if (!file) { alert('Elige una imagen.'); return; }
+    const token = sessionStorage.getItem('token_ica');
+    const base = (typeof window.API_BASE !== 'undefined') ? window.API_BASE : '';
+    const fd = new FormData();
+    fd.append('imagen', file);
+    fetch(base + '/carrusel', { method: 'POST', headers: { 'Authorization': 'Bearer ' + token }, body: fd })
+    .then(res => res.json())
+    .then(data => {
+        if (data.url || data.status === 'Éxito') {
+            input.value = '';
+            cargarCarruselCMS();
+        } else {
+            alert('Error: ' + (data.detail || data.detalle || 'no se pudo subir'));
+        }
+    })
+    .catch(() => alert('Fallo al subir la imagen.'));
+}
+
+function eliminarImagenCarrusel(id) {
+    const token = sessionStorage.getItem('token_ica');
+    const base = (typeof window.API_BASE !== 'undefined') ? window.API_BASE : '';
+    fetch(base + '/carrusel/' + id, { method: 'DELETE', headers: { 'Authorization': 'Bearer ' + token } })
+    .then(res => res.json())
+    .then(() => cargarCarruselCMS())
+    .catch(() => alert('Fallo al eliminar.'));
 }

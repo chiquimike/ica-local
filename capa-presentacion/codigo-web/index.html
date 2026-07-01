@@ -57,6 +57,18 @@
       .gal-modal-contador { text-align: center; color: #666; font-size: .85rem; padding-top: 8px; }
       .gal-modal-content h3 { margin: 10px 20px 6px; }
       .gal-modal-content p { margin: 0 20px; color: #444; }
+      /* Carrusel del Inicio */
+      .hero-carousel { position: relative; }
+      .hero-nav { position: absolute; top: 50%; transform: translateY(-50%); background: rgba(0,0,0,.4);
+        color: #fff; border: none; font-size: 30px; line-height: 1; padding: 4px 14px; cursor: pointer; border-radius: 4px; }
+      .hero-prev { left: 8px; } .hero-next { right: 8px; }
+      .hero-dots { text-align: center; margin-top: 10px; }
+      .hero-dots span { display: inline-block; width: 10px; height: 10px; border-radius: 50%;
+        background: #bbb; margin: 0 4px; cursor: pointer; }
+      .hero-dots span.activo { background: #0056b3; }
+      #carrusel-admin-list img { height: 55px; margin: 4px; border-radius: 4px; vertical-align: middle; }
+      .cms-carrusel-del { background: #dc3545; color: #fff; border: none; border-radius: 3px;
+        padding: 0 6px; cursor: pointer; margin-right: 12px; }
     </style>
 </head>
 <body>
@@ -101,7 +113,19 @@
     </div>
     
     <div class="main-image-container">
-        <img src="img/entrada_cloud.jpeg" alt="Entrada de la Facultad FES Aragón UNAM" class="hero-image" data-cms-img="inicio.hero_img">
+        <!-- Carrusel del Inicio (lo llena cargarCarruselCMS; si esta vacio, se queda esta imagen) -->
+        <div id="hero-carousel" class="hero-carousel">
+            <img id="hero-carousel-img" src="img/entrada_cloud.jpeg" alt="Innovation Center Aragón" class="hero-image">
+            <button class="hero-nav hero-prev" onclick="heroNav(-1)" style="display:none;">&lsaquo;</button>
+            <button class="hero-nav hero-next" onclick="heroNav(1)" style="display:none;">&rsaquo;</button>
+            <div id="hero-dots" class="hero-dots"></div>
+        </div>
+        <!-- Admin: gestionar las imagenes del carrusel (solo en modo edicion) -->
+        <div id="cms-carrusel-admin" style="display:none; margin-top:12px;">
+            <div id="carrusel-admin-list"></div>
+            <input type="file" id="carrusel-img-input" accept="image/*">
+            <button class="btn-unam" style="cursor:pointer;" onclick="agregarImagenCarrusel()">Subir al carrusel</button>
+        </div>
     </div>
 
     <div class="welcome-text-section">
