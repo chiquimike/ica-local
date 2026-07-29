@@ -51,11 +51,11 @@ kubectl -n argocd get pods -w
 kubectl apply -f argocd/project-default.yaml
 ```
 
-2. Edita `argocd/app-backend.yaml`: ajusta `repoURL` y `targetRevision` (tu rama).
+2. Edita `argocd/app-stack.yaml`: ajusta `repoURL` y `targetRevision` (tu rama).
 3. Aplica:
 
 ```bash
-kubectl apply -f argocd/app-backend.yaml
+kubectl apply -f argocd/app-stack.yaml
 kubectl -n argocd get applications
 ```
 
@@ -88,8 +88,31 @@ argocd app get ica-backend     # estado de sync y health
 - Apuntar la Application a `path: overlays/server` (en vez de `capa-logica`),
   para que Argo gestione todo el stack con la config del server.
 
+## Gestion de secretos (Sealed Secrets)
+
+El repositorio es publico, asi que ningun Secret de Kubernetes puede vivir en
+texto plano dentro de Git. Se resolvio extendiendo el mismo patron que ya
+usamos para `config.js` (config especifica por overlay):
+
+- `overlays/local/mysql-secret-dev.yaml`: un Secret normal con una contrasena
+  de relleno, sin valor real que proteger (solo para Minikube).
+- `overlays/server/mysql-secret-sealed.yaml`: un `SealedSecret` (cifrado) que
+  el controlador de [Sealed Secrets](https://github.com/bitnami-labs/sealed-secrets)
+  descifra dentro del cluster. El texto cifrado SI es seguro de publicar; solo
+  el controlador de ese cluster especifico puede descifrarlo.
+
+**Antes del primer despliegue en el servidor real** hay que generar el cifrado
+real (el archivo `mysql-secret-sealed.yaml` que esta en el repo ahora mismo es
+un template con un valor de relleno, no funciona). Los pasos exactos estan
+documentados como comentario dentro de ese mismo archivo.
+
+> La contrasena anterior (`1ca_01`) quedo expuesta en el historial de Git antes
+> de este cambio y se considera comprometida. La contrasena nueva que generes
+> con `kubeseal` debe ser distinta.
+
 ## Pendiente para fases siguientes
 
 - [ ] Ampliar Argo para gestionar TODO el stack (apuntar a `overlays/server`).
 - [ ] TLS/HTTPS via Ingress.
-- [ ] Secretos cifrados en Git (Sealed Secrets / SOPS).
+- [x] Andamiaje de Secretos cifrados en Git (Sealed Secrets) — falta generar
+      el cifrado real en el servidor (ver seccion de arriba).
