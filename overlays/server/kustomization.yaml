@@ -1,10 +1,13 @@
 apiVersion: kustomize.config.k8s.io/v1beta1
 kind: Kustomization
 
-# Entorno SERVER (K3s, HP ProLiant). Parte de la base y solo sobreescribe
-# la URL del backend en el frontend (config.js) via merge
+# Entorno SERVER (K3s, HP ProLiant). Parte de la base, sobreescribe la URL del
+# backend en el frontend (config.js) via merge, y agrega el Secret de MySQL
+# cifrado con Sealed Secrets (ver mysql-secret-sealed.yaml y las instrucciones
+# de generacion ahi mismo -- requiere generarse una vez en el servidor real).
 resources:
   - ../../base
+  - mysql-secret-sealed.yaml
 
 configMapGenerator:
   - name: frontend-codigo

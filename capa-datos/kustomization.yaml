@@ -1,6 +1,9 @@
 apiVersion: kustomize.config.k8s.io/v1beta1
 kind: Kustomization
 
-# Capa de Datos (MySQL + Secret + Service)
+# Capa de Datos (MySQL: StatefulSet + Service).
+# El Secret de MySQL ("mysql-secret") NO vive aqui a proposito: cada overlay lo
+# provee segun su entorno (ver overlays/local y overlays/server). Asi el mismo
+# patron que usamos para config.js (config por entorno) aplica tambien al secreto.
 resources:
-  - mysql-ICA.yaml
+  - mysql-db.yaml
