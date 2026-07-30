@@ -114,21 +114,46 @@ intento anterior, cambiar el Secret **no** cambia la contraseña real dentro
 de la base de datos ya corriendo — el backend fallará al conectar aunque el
 Secret esté "bien". Dos opciones:
 
-- **Datos descartables (recomendado si es una prueba):**
+- **Datos descartables (borrar el volumen y empezar de cero).**
+  El orden importa: hay que **bajar el pod antes** de borrar el PVC. Un
+  `kubectl delete pvc` sobre un volumen en uso no lo borra — Kubernetes lo
+  deja en `Terminating` por su finalizer `pvc-protection`, y si el
+  StatefulSet recrea el pod, vuelve a montar el mismo volumen con los datos
+  (y la contraseña) viejos. Secuencia correcta:
   ```bash
-  kubectl delete pvc mysql-data-mysql-0
-  kubectl delete pod mysql-0
+  kubectl scale statefulset mysql --replicas=0
+  kubectl wait --for=delete pod/mysql-0 --timeout=90s
+  kubectl delete pvc mysql-data-mysql-0     # ahora si se borra: nadie lo usa
+  kubectl scale statefulset mysql --replicas=1
+  kubectl rollout restart deployment/api-backend
   ```
-  Kubernetes recrea el pod con un volumen vacío y ahí sí toma la contraseña
-  nueva desde el Secret.
+  Verifica que quedó limpio: `kubectl get pvc` debe mostrar el PVC con un
+  `AGE` de segundos, no de días.
 
-- **Datos reales que no quieres perder:** entra al contenedor y cambia la
-  contraseña manualmente para que coincida con la del Secret nuevo:
+- **Datos reales que no queremos perder:** cambia la contraseña dentro de
+  MySQL para que coincida con la del Secret nuevo (no borra nada):
   ```bash
-  kubectl exec -it mysql-0 -- mysql -u root -p'<PASSWORD-VIEJA>'
-  ALTER USER 'root'@'%' IDENTIFIED BY '<PASSWORD-NUEVA>';
-  FLUSH PRIVILEGES;
+  kubectl exec -it mysql-0 -- mysql -u root -p'<PASSWORD-VIEJA>' \
+    -e "ALTER USER 'root'@'%' IDENTIFIED BY '<PASSWORD-NUEVA>'; FLUSH PRIVILEGES;"
+  kubectl rollout restart deployment/api-backend
   ```
+
+### Cómo se ve este fallo desde afuera
+
+Síntoma en el navegador: la página carga y las secciones públicas se ven
+**vacías** (no roto), y cualquier operación con la base de datos devuelve
+"Ocurrió un error procesando la solicitud".
+
+Eso es la degradación elegante funcionando: los endpoints públicos
+(`/contenido`, `/galeria`, `/horarios`, `/carrusel`) responden `200` con
+`{}` o `[]` cuando la BD falla. **El error real solo está en los logs:**
+```bash
+kubectl logs deploy/api-backend --tail=40
+```
+- `(1045, "Access denied for user 'root'...")` → contraseña desincronizada
+  entre el Secret y lo que MySQL tiene realmente inicializado (esta sección).
+- `(1146, "Table ... doesn't exist")` → la migración de arranque no alcanzó
+  a correr; basta `kubectl rollout restart deployment/api-backend`.
 
 ## Troubleshooting rápido
 
