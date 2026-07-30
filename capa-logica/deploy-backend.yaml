@@ -12,6 +12,46 @@ spec:
       labels:
         app: backend-api
     spec:
+      # Espera a que MySQL responda ANTES de arrancar el backend.
+      # Sin esto, el backend arrancaba en paralelo con MySQL y su migracion de
+      # inicio (que reintenta 10 veces x 3s = 30s) podia agotarse en hardware
+      # lento; el pod quedaba "Running" pero sin tablas, fallando en silencio.
+      # Usa la misma imagen mysql:5.7 del StatefulSet: ya esta en el nodo, no
+      # descarga nada nuevo (relevante con 2GB de RAM).
+      initContainers:
+      - name: esperar-mysql
+        image: mysql:5.7
+        env:
+        # mysqladmin lee MYSQL_PWD del entorno: evita poner la password en la
+        # linea de comandos (donde seria visible con 'ps').
+        - name: MYSQL_PWD
+          valueFrom:
+            secretKeyRef:
+              name: mysql-secret
+              key: mysql-root-password
+        command:
+        - sh
+        - -c
+        - |
+          intentos=60
+          i=0
+          until mysqladmin ping -h mysql-nodeport -u root --silent; do
+            i=$((i+1))
+            if [ "$i" -ge "$intentos" ]; then
+              echo "MySQL no respondio tras $intentos intentos (120s). Abortando."
+              exit 1
+            fi
+            echo "Esperando a MySQL... ($i/$intentos)"
+            sleep 2
+          done
+          echo "MySQL responde y las credenciales son validas. Arrancando backend."
+        resources:
+          requests:
+            memory: "32Mi"
+            cpu: "50m"
+          limits:
+            memory: "64Mi"
+            cpu: "100m"
       containers:
       - name: fastapi
         image: python:3.9-alpine
