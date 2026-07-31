@@ -36,7 +36,7 @@ overlays/
 └── server/          → K3s del servidor (config.js + Secret de MySQL cifrado)
 
 argocd/              → AppProject + Application de Argo CD (GitOps)
-docs/                → Runbooks operativos
+docs/runbooks/       → Runbooks operativos, numerados por orden de uso
 ```
 
 La única diferencia real entre entornos —la URL del backend y la contraseña
@@ -69,7 +69,7 @@ Accede en `http://192.168.49.2.nip.io:30080` (o el resultado de `minikube ip`).
 
 ### Servidor (K3s, HP ProLiant)
 
-Antes de la primera vez, sigue **[`docs/runbook-servidor-mysql-secret.md`](docs/runbook-servidor-mysql-secret.md)**
+Antes de la primera vez, sigue **[`docs/runbooks/03-servidor-mysql-secret.md`](docs/runbooks/03-servidor-mysql-secret.md)**
 para generar el Secret cifrado de MySQL (el repo es público; ver sección de
 [Seguridad](#seguridad) más abajo). Después:
 
@@ -98,11 +98,8 @@ bajos en cada `Deployment` (el backend pide apenas 64Mi, por ejemplo).
 
 ## Seguridad
 
-- Autenticación vía Google OAuth 2.0, restringida a cuentas @aragon.unam.mx
-  (o lista blanca de administradores). El backend verifica criptográficamente
-  la firma del JWT contra las llaves públicas de Google en cada request
-  protegido (librería google-auth, id_token.verify_oauth2_token) — no confía
-  en el frontend ni decodifica el token sin validar.
+- Autenticación Google OAuth 2.0 + verificación criptográfica del JWT en el
+  backend (Zero Trust: cada request se valida, no solo el frontend).
 - Autorización de dos niveles: cuentas `@aragon.unam.mx` para uso general,
   lista blanca de administradores para editar el CMS.
 - MySQL como `Service` tipo `ClusterIP` (no accesible desde fuera del cluster).
@@ -123,8 +120,18 @@ bajos en cada `Deployment` (el backend pide apenas 64Mi, por ejemplo).
 ## Documentación adicional
 
 - [`argocd/README.md`](argocd/README.md) — instalación y operación de Argo CD.
-- [`docs/runbook-servidor-mysql-secret.md`](docs/runbook-servidor-mysql-secret.md) — generar el Secret cifrado del servidor.
 - ADRs y runbook general de diagnóstico — en construcción.
+
+### Runbooks operativos ([`docs/runbooks/`](docs/runbooks/))
+
+| # | Runbook | Cuándo se usa |
+|---|---|---|
+| 01 | [Acceso SSH al servidor](docs/runbooks/01-acceso-ssh-servidor.md) | Para llegar a una terminal del servidor físico |
+| 02 | [Primer despliegue en el servidor](docs/runbooks/02-primer-despliegue-servidor.md) | Llevar el proyecto a producción por primera vez |
+| 03 | [Secret de MySQL (Sealed Secrets)](docs/runbooks/03-servidor-mysql-secret.md) | Generar o rotar la contraseña cifrada de la BD |
+| 04 | [Conexión con MySQL Workbench](docs/runbooks/04-conn-mysql-workbench.md) | Inspeccionar la base de datos manualmente |
+| 05 | [Mantenimiento / Cold Start](docs/runbooks/05-mantenimiento-cold-start.md) | Encender el servidor tras semanas apagado, o mantenimiento preventivo |
+| 06 | [Diagnóstico general](docs/runbooks/06-diagnostico-general.md) | Triage: algo no funciona y no sabes por dónde empezar |
 
 ## Historial de versiones
 
