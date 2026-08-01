@@ -1,8 +1,9 @@
-# GitOps con Argo CD — Fase 1 (Minikube)
+# GitOps con Argo CD (Minikube)
 
-Instalación **ligera (Core)** de Argo CD en **Minikube** y una `Application` que
-reconcilia el **backend** desde GitHub. Objetivo: validar el flujo GitOps
-—`git push` → Argo reconcilia— en local, antes de promover al server.
+Instalación **ligera (Core)** de Argo CD en **Minikube** y una `Application`
+que reconcilia **todo el stack** (las tres capas) desde GitHub. Objetivo:
+validar el flujo GitOps —`git push` → Argo reconcilia— en local, antes de
+promover al servidor.
 
 ## Estructura del repo (Kustomize base + overlays)
 
@@ -67,8 +68,8 @@ kubectl -n argocd get applications
 Todo lo de abajo es opcional, no conviene para el server pero esta bien decir que tenemos esta opcion,
 en minikube valdria la pena. Si es que quieres probar algo. 
 ```bash
-argocd login --core            # CLI en modo core (opcional)
-argocd app get ica-backend     # estado de sync y health
+argocd login --core          # CLI en modo core (opcional)
+argocd app get ica-stack     # estado de sync y health
 ```
 
 ## Notas importantes
@@ -85,8 +86,17 @@ argocd app get ica-backend     # estado de sync y health
 ## Promover al server (cuando este listo)
 
 - Instalar Argo CD en el K3s del HP ProLiant (mismo `core-install.yaml`).
-- Apuntar la Application a `path: overlays/server` (en vez de `capa-logica`),
-  para que Argo gestione todo el stack con la config del server.
+- Crear una Application aparte para el servidor con `path: overlays/server`
+  (la actual, `app-stack.yaml`, apunta a `overlays/local` y a la rama de
+  trabajo: aplicarla tal cual en el servidor desplegaria la config de
+  Minikube en produccion).
+- Definir que rama vigila Argo en produccion. Lo sano es `main`, dejando la
+  rama de trabajo para experimentar sin desplegar al servidor real.
+
+> **Recordatorio:** el controlador de Argo CD vive en el cluster, no en el
+> repo. Si el cluster se recrea (por ejemplo `minikube delete`), hay que
+> reinstalarlo con `core-install.yaml`; los manifiestos de este directorio
+> por si solos no lo reinstalan.
 
 ## Gestion de secretos (Sealed Secrets)
 
