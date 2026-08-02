@@ -478,53 +478,13 @@ body {
 }
 
 /* ============================================= */
-/* CARDS MÁS PREMIUM */
+/* CTA FINAL SERVICIO SOCIAL (Aislado) */
 /* ============================================= */
-
-.card-unam {
-    position: relative;
-    overflow: hidden;
-}
-
-/* línea animada elegante */
-.card-unam::before {
-    content: '';
-    position: absolute;
-    width: 100%;
-    height: 4px;
-    top: 0;
-    left: 0;
-    background: linear-gradient(90deg, #C59D1A, #002B5C);
-    transform: scaleX(0);
-    transition: 0.4s ease;
-}
-
-.card-unam:hover::before {
-    transform: scaleX(1);
-}
-
-/* ============================================= */
-/* ICONOS (esto cambia TODO visualmente) */
-/* ============================================= */
-
-.card-info h3::before {
-    content: "⚡";
-    margin-right: 8px;
-    font-size: 1.2rem;
-}
-
-/* puedes personalizar cada uno */
-.card-unam:nth-child(2) h3::before { content: ""; }
-.card-unam:nth-child(3) h3::before { content: ""; }
-
-/* ============================================= */
-/* CTA FINAL MÁS PRO */
-/* ============================================= */
-
-.card-unam:last-child {
+#servicio-social .card-unam:last-child {
     background: linear-gradient(135deg, #f5f7fa, #e4ecf5);
     border: none !important;
 }
+
 
 /* ============================================= */
 /* MICROINTERACCIONES */
@@ -550,31 +510,6 @@ body {
     left: 100%;
 }
 
-.ss-features {
-  display: flex;
-  flex-direction: column;
-  gap: 15px;
-  margin-top: 25px;
-}
-
-.feature {
-  display: flex;
-  align-items: center;
-  gap: 15px;
-  background: rgba(255,255,255,0.6);
-  padding: 12px 16px;
-  border-radius: 12px;
-  transition: 0.3s;
-}
-
-.feature:hover {
-  transform: translateX(5px);
-  background: rgba(255,255,255,0.9);
-}
-
-.feature span {
-  font-size: 1.5rem;
-}
 
 /* ============================================= */
 /* PASOS (STEPS) RESPONSIVOS Y ANIMADOS */
