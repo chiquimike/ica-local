@@ -457,6 +457,27 @@ body {
 }
 
 /* ============================================= */
+/* BOTÓN DEL HERO DE SERVICIO SOCIAL */
+/* ============================================= */
+.btn-ss-hero {
+    margin-top: 35px; /* Empuja el botón hacia abajo para separarlo del texto */
+    background-color: var(--unam-oro); /* Relleno oro para contraste fuerte */
+    border-color: var(--unam-oro);
+    color: var(--unam-azul); /* Letras azul marino para que resalten sobre el oro */
+    box-shadow: 0 4px 15px rgba(197, 157, 26, 0.4); /* Resplandor dorado sutil */
+    padding: 0.8rem 1.8rem; /* Lo hace un poquito más grande y cliqueable */
+    font-size: 1.1rem;
+}
+
+/* Interacción al pasar el mouse */
+.btn-ss-hero:hover {
+    background-color: white; /* Cambia a blanco al interactuar */
+    color: var(--unam-azul);
+    border-color: white;
+    box-shadow: 0 8px 25px rgba(255, 255, 255, 0.3);
+}
+
+/* ============================================= */
 /* CARDS MÁS PREMIUM */
 /* ============================================= */
 
@@ -555,26 +576,61 @@ body {
   font-size: 1.5rem;
 }
 
+/* ============================================= */
+/* PASOS (STEPS) RESPONSIVOS Y ANIMADOS */
+/* ============================================= */
 .steps {
-  display: flex;
-  justify-content: space-between;
-  margin-top: 30px;
+    display: flex;
+    justify-content: space-around;
+    align-items: flex-start;
+    gap: 15px;
+    margin-top: 20px;
+    flex-wrap: wrap; /* Permite que los elementos bajen de línea si no caben */
+    width: 100%;
 }
 
 .step {
-  text-align: center;
+    text-align: center;
+    flex: 1;
+    min-width: 100px; /* Evita que el texto se aplaste como acordeón */
 }
 
 .step span {
-  display: inline-block;
-  background: var(--unam-azul);
-  color: white;
-  width: 35px;
-  height: 35px;
-  border-radius: 50%;
-  line-height: 35px;
-  font-weight: bold;
-  margin-bottom: 10px;
+    display: inline-flex;
+    justify-content: center;
+    align-items: center;
+    background: var(--unam-azul);
+    color: white;
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    font-weight: bold;
+    font-size: 1.1rem;
+    margin-bottom: 12px;
+    box-shadow: 0 4px 10px rgba(0, 43, 92, 0.2);
+    transition: transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275), background 0.3s ease;
+}
+
+/* Microinteracción: el círculo crece y cambia a color oro al pasar el mouse */
+.step:hover span {
+    transform: scale(1.15);
+    background: var(--unam-oro);
+}
+
+/* Ajuste específico para pantallas de celulares */
+@media (max-width: 576px) {
+    .steps {
+        flex-direction: column; /* Apila los pasos verticalmente */
+        align-items: center;
+        gap: 20px;
+    }
+    
+    .step {
+        width: 100%;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+    }
 }
 
 .badge {

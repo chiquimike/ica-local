@@ -199,88 +199,98 @@
 </section>
 
 <section id="servicio social" class="content-section">
-
-    <div class="ss-hero">
+    <!-- 1. Héroe / Banner Principal -->
+    <div class="ss-hero" style="margin-bottom: 2rem;">
         <div class="ss-hero-content">
             <h1 data-cms="ss.hero_titulo">Más que un Requisito Académico</h1>
             <p data-cms="ss.hero_desc">
                 En el ICA de la FES Aragón, el Servicio Social es el puente entre tu formación y el impacto real.
             </p>
-            <button class="btn-unam" onclick="scrollToCursos()"
-            >Explorar Cursos</button>
+            <button class="btn-unam btn-ss-hero" onclick="scrollToCursos()">Explorar Cursos</button>
         </div>
     </div>
 
-<div class="ss-features">
-  <div class="feature">
-    <span>💡</span>
-    <p data-cms="ss.feature1">Participa en proyectos reales</p>
-  </div>
-
-  <div class="feature">
-    <span>🤝</span>
-    <p data-cms="ss.feature2">Colabora con equipos multidisciplinarios</p>
-  </div>
-
-  <div class="feature">
-    <span>🚀</span>
-    <p data-cms="ss.feature3">Desarrolla habilidades profesionales</p>
-  </div>
-</div>
-
-    <div class="grid-layout" style="margin-top: 30px;">
-        
-        <div class="card-unam" style="grid-column: 1 / -1;"> <div class="card-info">
-                <h3 data-cms="ss.card1_titulo">Más que un Requisito Académico</h3>
-                <p style="font-size: 1.1rem; color: #555; line-height: 1.8;" data-cms="ss.card1_desc">
-                    En el <strong>ICA de la FES Aragón</strong>, concebimos el Servicio Social como el puente vital entre tu formación y las necesidades de la sociedad. Es tu primera gran oportunidad para retribuir y fortalecer tus habilidades profesionales en un entorno real. No vienes solo a cumplir horas; vienes a ser parte activa de la solución.
-                </p>
-            </div>
+    <!-- 2. Tarjeta de Introducción -->
+    <div class="card-unam" style="margin-bottom: 2rem;">
+        <div class="card-info" style="text-align: center;">
+            <h3 data-cms="ss.card1_titulo">Más que un Requisito Académico</h3>
+            <p style="font-size: 1.1rem; color: #555; line-height: 1.8; max-width: 900px; margin: 0 auto;" data-cms="ss.card1_desc">
+                En el <strong>ICA de la FES Aragón</strong>, concebimos el Servicio Social como el puente vital entre tu formación y las necesidades de la sociedad. Es tu primera gran oportunidad para retribuir y fortalecer tus habilidades profesionales en un entorno real. No vienes solo a cumplir horas; vienes a ser parte activa de la solución.
+            </p>
         </div>
+    </div>
 
-<div class="steps">
-  <div class="step">
-    <span>1</span>
-    <p data-cms="ss.step1">Acércate al ICA</p>
-  </div>
-  <div class="step">
-    <span>2</span>
-    <p data-cms="ss.step2">Conoce los proyectos</p>
-  </div>
-  <div class="step">
-    <span>3</span>
-    <p data-cms="ss.step3">Empieza a colaborar</p>
-  </div>
-</div>
-
+    <!-- 3. Pilares (Cuadrícula de 3 columnas) -->
+    <div class="grid-layout" style="margin-bottom: 2rem;">
+        <!-- Pilar 1 -->
         <div class="card-unam">
-            <div class="card-info">
+            <div class="card-info" style="text-align: center;">
+                <div style="font-size: 2.5rem; margin-bottom: 15px;">💡</div>
                 <h3 data-cms="ss.card2_titulo">Proyectos de Impacto Real</h3>
                 <p data-cms="ss.card2_desc">Colabora directamente en el desarrollo e implementación de soluciones tecnológicas que benefician a la FES Aragón y a sectores sociales vulnerables.</p>
+                <!-- Atributo CMS preservado pero oculto para limpieza visual -->
+                <span style="display:none;" data-cms="ss.feature1">Participa en proyectos reales</span>
             </div>
         </div>
 
+        <!-- Pilar 2 -->
         <div class="card-unam">
-            <div class="card-info">
+            <div class="card-info" style="text-align: center;">
+                <div style="font-size: 2.5rem; margin-bottom: 15px;">🤝</div>
                 <h3 data-cms="ss.card3_titulo">Fortalecimiento Profesional</h3>
                 <p data-cms="ss.card3_desc">Desarrolla competencias clave (<strong>soft skills</strong>) como el trabajo en equipo multidisciplinario, comunicación efectiva, liderazgo y resolución ética de problemas.</p>
+                <span style="display:none;" data-cms="ss.feature2">Colabora con equipos multidisciplinarios</span>
             </div>
         </div>
 
-        <div class="card-unam" style="grid-column: 1 / -1; border-left: 4px solid var(--unam-oro);">
+        <!-- Pilar 3 -->
+        <div class="card-unam">
             <div class="card-info" style="text-align: center;">
+                <div style="font-size: 2.5rem; margin-bottom: 15px;">🚀</div>
                 <h3 data-cms="ss.cta_titulo">¿Te interesa marcar la diferencia?</h3>
-                <p style="margin-bottom: 20px;" data-cms="ss.cta_p1">Tu talento puede iniciar una trayectoria profesional con conciencia social. Ven al ICA, conoce nuestros proyectos vigentes y descubre cómo puedes colaborar.</p>
-                
-                <p data-cms="ss.cta_p2"><strong>¿Cómo empezar?</strong> Visítanos directamente en las instalaciones del ICA (Planta Alta de la Biblioteca) o contáctanos por redes sociales para agendar una plática.</p>
+                <p data-cms="ss.cta_p1">Tu talento puede iniciar una trayectoria profesional con conciencia social. Ven al ICA, conoce nuestros proyectos vigentes y descubre cómo puedes colaborar.</p>
+                <span style="display:none;" data-cms="ss.feature3">Desarrolla habilidades profesionales</span>
             </div>
         </div>
-<span class="badge">Impacto Social</span>
-<span class="badge">Trabajo en equipo</span>
-<span class="badge">Tecnología</span>
+    </div>
 
+    <!-- 4. Llamado a la Acción (CTA) y Pasos integrados -->
+    <div class="card-unam" style="border-left: 4px solid var(--unam-oro);">
+        <div class="card-info" style="display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 30px;">
+            
+            <!-- Texto y Badges -->
+            <div style="flex: 1; min-width: 280px;">
+                <h3>¿Cómo empezar?</h3>
+                <p data-cms="ss.cta_p2" style="margin-bottom: 20px;">
+                    Visítanos directamente en las instalaciones del ICA (Planta Alta de la Biblioteca) o contáctanos por redes sociales para agendar una plática.
+                </p>
+                <div>
+                    <span class="badge">Impacto Social</span>
+                    <span class="badge">Trabajo en equipo</span>
+                    <span class="badge">Tecnología</span>
+                </div>
+            </div>
+            
+            <!-- Pasos (Visualmente alineados) -->
+            <div class="steps" style="flex: 1; min-width: 280px; margin-top: 0;">
+                <div class="step">
+                    <span>1</span>
+                    <p data-cms="ss.step1" style="font-size: 0.9rem;">Acércate al ICA</p>
+                </div>
+                <div class="step">
+                    <span>2</span>
+                    <p data-cms="ss.step2" style="font-size: 0.9rem;">Conoce los proyectos</p>
+                </div>
+                <div class="step">
+                    <span>3</span>
+                    <p data-cms="ss.step3" style="font-size: 0.9rem;">Empieza a colaborar</p>
+                </div>
+            </div>
+
+        </div>
     </div>
 </section>
+
 
 <section id="galeria" class="content-section full-centered-section gallery-section">
     <div class="hero-text-container">
