@@ -468,36 +468,53 @@
     </div>
 </section>
 <section id="servicios" class="content-section">
-        <h1 class="section-title" data-cms="servicios.titulo">Servicios ICA</h1>
-        <p class="subtitle" data-cms="servicios.subtitulo">Recursos tecnológicos disponibles para la comunidad.</p>
-        <div class="grid-layout" style="margin-top: 40px;">
-                <div class="card-unam">
-                    <div class="card-info">
-                        <h3 data-cms="servicios.cubiculos_titulo">Reservación de Cubículos</h3>
-                        <p data-cms="servicios.cubiculos">Contamos con espacios diseñados para el trabajo colaborativo y estudio grupal. Consulta disponibilidad directamente en el laboratorio.</p>
-                    </div>
-                </div>
-                <div class="card-unam">
-                    <div class="card-info">
-                        <h3 data-cms="servicios.prestamo_titulo">Préstamo de Computadoras</h3>
-                        <p data-cms="servicios.prestamo">Equipos de cómputo disponibles para uso temporal dentro de las instalaciones, para tus prácticas y trabajos académicos.</p>
-                    </div>
-                </div>
-                <div class="card-unam">
-                    <div class="card-info">
-                        <h3 data-cms="servicios.corte_titulo">Corte Láser</h3>
-                        <p data-cms="servicios.corte">Tecnología avanzada para el corte y grabado de precisión en tus proyectos de diseño e ingeniería.</p>
-                        <a href="img/cortelaser.pdf" target="_blank" class="btn-unam">Ver Detalles</a>
-                    </div>
-                </div>
-                <div class="card-unam">
-                    <div class="card-info">
-                        <h3 data-cms="servicios.impresion_titulo">Impresión 3D</h3>
-                        <p data-cms="servicios.impresion">Convierte tus diseños digitales en objetos físicos reales con nuestras impresoras 3D.</p>
-                        <a href="img/impresion3d.pdf" target="_blank" class="btn-unam">Ver Detalles</a>
-                    </div>
-                </div>
+    <!-- Usamos el contenedor hero para un encabezado más grande -->
+    <div class="hero-text-container">
+        <h1 class="section-title centered-text" data-cms="servicios.titulo">Servicios ICA</h1>
+        <p class="subtitle centered-text" data-cms="servicios.subtitulo">Recursos tecnológicos disponibles para la comunidad.</p>
+    </div>
+
+    <div class="grid-layout" style="margin-top: 20px;">
+        
+        <!-- Tarjeta 1: Cubículos -->
+        <div class="card-unam servicio-card">
+            <div class="card-info">
+                <div class="servicio-icon">👥</div>
+                <h3 data-cms="servicios.cubiculos_titulo">Reservación de Cubículos</h3>
+                <p data-cms="servicios.cubiculos">Contamos con espacios diseñados para el trabajo colaborativo y estudio grupal. Consulta disponibilidad directamente en el laboratorio.</p>
             </div>
+        </div>
+        
+        <!-- Tarjeta 2: Computadoras -->
+        <div class="card-unam servicio-card">
+            <div class="card-info">
+                <div class="servicio-icon">💻</div>
+                <h3 data-cms="servicios.prestamo_titulo">Préstamo de Computadoras</h3>
+                <p data-cms="servicios.prestamo">Equipos de cómputo disponibles para uso temporal dentro de las instalaciones, para tus prácticas y trabajos académicos.</p>
+            </div>
+        </div>
+
+        <!-- Tarjeta 3: Corte Láser -->
+        <div class="card-unam servicio-card">
+            <div class="card-info d-flex-col">
+                <div class="servicio-icon">⚡</div>
+                <h3 data-cms="servicios.corte_titulo">Corte Láser</h3>
+                <p class="flex-grow-1" data-cms="servicios.corte">Tecnología avanzada para el corte y grabado de precisión en tus proyectos de diseño e ingeniería.</p>
+                <a href="img/cortelaser.pdf" target="_blank" class="btn-unam btn-servicio">Ver Detalles</a>
+            </div>
+        </div>
+
+        <!-- Tarjeta 4: Impresión 3D -->
+        <div class="card-unam servicio-card">
+            <div class="card-info d-flex-col">
+                <div class="servicio-icon">🧊</div>
+                <h3 data-cms="servicios.impresion_titulo">Impresión 3D</h3>
+                <p class="flex-grow-1" data-cms="servicios.impresion">Convierte tus diseños digitales en objetos físicos reales con nuestras impresoras 3D.</p>
+                <a href="img/impresion3d.pdf" target="_blank" class="btn-unam btn-servicio">Ver Detalles</a>
+            </div>
+        </div>
+
+    </div>
 </section>
     </main>
 
