@@ -23,6 +23,7 @@
       .cms-btn-guardar { background: #28a745; }
       .cms-btn-cancelar { background: #dc3545; }
       .cms-btn-respaldo { background: #555; }
+      .cms-btn-salir { background: #343a40; } /* Gris oscuro para diferenciarlo del rojo de Cancelar */
       [data-cms].cms-editando { outline: 2px dashed #0056b3; outline-offset: 3px;
         background: rgba(0,86,179,.05); cursor: text; border-radius: 3px; }
       [data-cms-img].cms-img-editando { outline: 3px dashed #28a745; outline-offset: 3px; cursor: pointer; }
@@ -540,6 +541,7 @@
         <button class="cms-btn-cancelar" id="btn-cms-cancelar" onclick="cancelarEdicionCMS()" style="display:none;">Cancelar</button>
         <button class="cms-btn-respaldo" onclick="descargarRespaldoCMS()">Respaldo</button>
         <button class="cms-btn-respaldo" onclick="document.getElementById('cms-respaldo-input').click()">Restaurar</button>
+        <button class="cms-btn-salir" onclick="cerrarSesionCMS()">Salir</button>
     </div>
 
     <!-- CMS: selector de archivo (oculto) para subir imagenes -->

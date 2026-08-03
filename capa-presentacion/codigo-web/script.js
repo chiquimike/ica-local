@@ -682,3 +682,13 @@ function eliminarImagenCarrusel(id) {
     .then(() => cargarCarruselCMS())
     .catch(() => alert('Fallo al eliminar.'));
 }
+
+// =============================================================
+// 11. CMS — CERRAR SESIÓN
+// =============================================================
+function cerrarSesionCMS() {
+    if (confirm('¿Deseas salir del modo administrador? Los cambios no guardados se perderán.')) {
+        sessionStorage.removeItem('token_ica'); // Destruye la sesión
+        location.reload(); // Recarga la página limpia
+    }
+}
