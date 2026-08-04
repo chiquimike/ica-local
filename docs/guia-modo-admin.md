@@ -91,8 +91,7 @@ Drive, etc.) — no vive en ningún otro lado más que en tu descarga.
 
 ### Restaurar
 
-Sube un archivo de respaldo (`.zip`) previamente descargado y **reemplaza
-todo el contenido actual del sitio por el del respaldo**.
+Haz clic en el botón "Restaurar" en la barra de herramientas, selecciona en tu computadora un archivo de respaldo (`.zip`) previamente descargado y el sistema reemplazará todo el contenido actual del sitio por el del respaldo.
 
 > ⚠️ **Es una operación destructiva.** No combina el contenido actual con
 > el del respaldo — lo sustituye por completo. El sitio te pedirá
