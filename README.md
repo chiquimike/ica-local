@@ -121,7 +121,7 @@ bajos en cada `Deployment` (el backend pide apenas 64Mi, por ejemplo).
 
 - [`argocd/README.md`](argocd/README.md) — instalación y operación de Argo CD.
 - [`docs/guia-modo-administrador.md`](docs/guia-modo-administrador.md) — guía de uso del CMS del sitio (sin conocimientos técnicos), para la coordinación/profesor.
-- ADRs — en construcción.
+- [`docs/adr/`](docs/adr/) — registro de decisiones de arquitectura (7 ADRs).
 
 ### Runbooks operativos ([`docs/runbooks/`](docs/runbooks/))
 
