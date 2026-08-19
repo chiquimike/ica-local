@@ -34,7 +34,7 @@ data:
     # Origenes permitidos para CORS (el frontend). Configurable por variable de entorno.
     ALLOWED_ORIGINS = os.getenv(
         "ALLOWED_ORIGINS",
-        "http://192.168.49.2.nip.io:30080,http://192.168.0.254:30080"
+        "http://192.168.49.2.nip.io:30080,http://192.168.0.254.nip.io:30080,http://192.168.0.254:30080"
     ).split(",")
 
     app.add_middleware(
