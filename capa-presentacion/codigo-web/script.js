@@ -31,21 +31,21 @@ function showSection(sectionId) {
     }
 }
 
-// =============================================================
-// 2. SCROLL SUAVE A CURSOS
-// =============================================================
-function scrollToCursos() {
-    showSection('cursos'); // Asegura que la sección de cursos esté visible
+// // =============================================================
+// // 2. SCROLL SUAVE A CURSOS
+// // =============================================================
+// function scrollToCursos() {
+//     showSection('cursos'); // Asegura que la sección de cursos esté visible
 
-    setTimeout(() => {
-        const cursosSec = document.getElementById('cursos');
-        if (cursosSec) {
-            cursosSec.scrollIntoView({
-                behavior: 'smooth'
-            });
-        }
-    }, 100);
-}
+//     setTimeout(() => {
+//         const cursosSec = document.getElementById('cursos');
+//         if (cursosSec) {
+//             cursosSec.scrollIntoView({
+//                 behavior: 'smooth'
+//             });
+//         }
+//     }, 100);
+// }
 
 // =============================================================
 // 3. ANIMACIÓN FADE-IN (INTERSECTION OBSERVER)
